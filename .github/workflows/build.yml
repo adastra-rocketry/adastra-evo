@@ -57,6 +57,15 @@ jobs:
           arduino-cli core install ${{ matrix.arduino-platform }}
         env:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+
+      # We then install the platform, which one will be determined
+      # dynamically by the build matrix.
+      - name: Install libraries
+        run: |
+          arduino-cli lib update-index
+          arduino-cli lib install Arduino_HTS221 ArduinoBLE Arduino_LSM9DS1 Arduino_LPS22HB
+        env:
+          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
  
       # Finally, we compile the sketch, using the FQBN that was set
       # in the build matrix.
