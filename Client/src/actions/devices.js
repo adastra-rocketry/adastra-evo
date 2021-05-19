@@ -1,4 +1,5 @@
 import {GET_DEVICE_SUCCESS, BACK_TO_DEVICE_SELECTION} from '../actionConstants/devices';
+import { history } from '../routers/AppRouter';
 
 export function getDeviceSuccess(device) {
     return {
@@ -7,19 +8,19 @@ export function getDeviceSuccess(device) {
     }
 }
 
-export function backToDeviceSelection(device) {
+export function backToDeviceSelection() {    
+    history.push('/');
     return {
-        type: BACK_TO_DEVICE_SELECTION,
-        device
+        type: BACK_TO_DEVICE_SELECTION,        
     }
 }
 
 export function getDevice() {
     return async dispatch => {
         const device = await navigator.bluetooth.requestDevice({
-            // filters: [...] <- Prefer filters to save energy & show relevant devices.
-               acceptAllDevices: true
-            });
+            filters: [{ name: "AdAstra Evo" }]
+        });
         dispatch(getDeviceSuccess(device));
+        history.push('/app');
     };
   }

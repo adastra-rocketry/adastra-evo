@@ -26,7 +26,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export const Header = ({ startLogout }) =>  {
+export const Header = ({ backToStart }) =>  {
   const classes = useStyles();
 
   return (
@@ -39,7 +39,7 @@ export const Header = ({ startLogout }) =>  {
           <Typography variant="h6" className={classes.title}>
             AdAstra Evo
           </Typography>
-          <Button color="inherit" onClick={startLogout}>Logout</Button>
+          <Button color="inherit" onClick={() => backToStart()}>Logout</Button>
         </Toolbar>
       </AppBar>
     </div>
