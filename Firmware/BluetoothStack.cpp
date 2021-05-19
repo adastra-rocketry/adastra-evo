@@ -1,4 +1,3 @@
-#line 1 "E:\\AdAstra\\adastra-evo\\Firmware\\BluetoothStack.cpp"
 #include "Arduino.h"
 #include <ArduinoBLE.h>
 #include "BluetoothStack.h"

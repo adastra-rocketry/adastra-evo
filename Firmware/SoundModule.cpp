@@ -1,4 +1,3 @@
-#line 1 "E:\\AdAstra\\adastra-evo\\Firmware\\SoundModule.cpp"
 #include "SoundModule.h"
 #include "Settings.h"
 #include "Arduino.h"

@@ -1,4 +1,3 @@
-#line 1 "E:\\AdAstra\\adastra-evo\\Firmware\\VehicleStateType.h"
 /*
   VehicleState.h - Library for storing and retrieving sensor data
 */

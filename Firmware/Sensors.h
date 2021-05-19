@@ -1,4 +1,3 @@
-#line 1 "E:\\AdAstra\\adastra-evo\\Firmware\\Sensors.h"
 /*
   Sensors.h
 */

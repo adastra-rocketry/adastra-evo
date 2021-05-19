@@ -1,4 +1,3 @@
-#line 1 "E:\\AdAstra\\adastra-evo\\Firmware\\Settings.h"
 #pragma once
 
 #define DEBUG false

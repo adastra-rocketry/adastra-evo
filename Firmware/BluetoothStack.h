@@ -1,5 +1,3 @@
-#line 1 "E:\\AdAstra\\adastra-evo\\Firmware\\BluetoothStack.h"
-
 #include <ArduinoBLE.h>
 #include "SystemState.h"
 

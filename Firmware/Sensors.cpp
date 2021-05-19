@@ -1,4 +1,3 @@
-#line 1 "E:\\AdAstra\\adastra-evo\\Firmware\\Sensors.cpp"
 #include "Sensors.h"
 
 Sensors::Sensors() {
@@ -62,10 +61,6 @@ void Sensors::Loop(SystemState &state) {
   DataPoint newItem = {state.VehicleState, millis(), pressure, temperature, acc_x, acc_y, acc_z, g_x, g_y, g_z};
   state.CurrentDataPoint = newItem;
 }
-
-
-
-
 
 void Sensors::ReadAcceleration(float &acc_x, float &acc_y, float &acc_z ) {
   acc_x = -999, acc_y = -999, acc_z = -999;

@@ -1,4 +1,3 @@
-#line 1 "E:\\AdAstra\\adastra-evo\\Firmware\\DataPoint.h"
 #pragma once
 #include "VehicleStateType.h"
 

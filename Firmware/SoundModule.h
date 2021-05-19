@@ -1,4 +1,3 @@
-#line 1 "E:\\AdAstra\\adastra-evo\\Firmware\\SoundModule.h"
 #pragma once
 
 #include "SystemState.h"
