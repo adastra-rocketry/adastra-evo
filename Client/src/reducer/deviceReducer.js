@@ -23,6 +23,10 @@ function deviceReducers(
       return {
         ...state,
         selected: null,
+        server: null,
+        service: null,
+        currentDeviceStateCharacteristic: null,
+        currentDeviceState: null
       };
     case DEVICE_CHARACTERISTIC_CHANGE_RECEIVED:
       return {

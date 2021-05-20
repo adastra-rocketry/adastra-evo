@@ -58,7 +58,9 @@ void Sensors::Loop(SystemState &state) {
   ReadAcceleration(acc_x, acc_y, acc_z);
   float g_x, g_y, g_z;
   ReadGyroscope(g_x, g_y, g_z);
-  DataPoint newItem = {state.VehicleState, millis(), pressure, temperature, acc_x, acc_y, acc_z, g_x, g_y, g_z};
+  float m_x, m_y, m_z;
+  IMU.readMagneticField(m_x, m_y, m_z);
+  DataPoint newItem = {state.VehicleState, millis(), pressure, temperature, acc_x, acc_y, acc_z, g_x, g_y, g_z, m_x, m_y, m_z};
   state.CurrentDataPoint = newItem;
 }
 

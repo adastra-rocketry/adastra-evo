@@ -23,14 +23,13 @@ export function getDeviceSuccess(
 
 export function backToDeviceSelection() {
   return async (dispatch, getState) => {
-    const device = getState().device.device;
+    const device = getState().device.selected;
 
     dispatch(disableLiveDataSubscription());
 
     if (device.gatt.connected) {
       device.gatt.disconnect();
     }
-    history.push("/");
     return {
       type: BACK_TO_DEVICE_SELECTION,
     };

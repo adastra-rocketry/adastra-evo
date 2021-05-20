@@ -1,28 +1,55 @@
+let offset = 0;
+
+function readNextValue(value, type) {
+  let result = null;
+  switch (type) {
+    case "Uint16":
+      result = value.getUint16(offset, true);
+      break;
+    case "Uint32":
+      result = value.getUint32(offset, true);
+      break;
+    case "Float32":
+      result = value.getFloat32(offset, true);
+      break;
+    default:
+      throw new Error("Unknown Datatype");
+  }
+
+  offset = offset + 4;
+  return result;
+}
 
 export function parseDataPoint(value) {
-  let offset = 0;
-
+  offset = 0;
   let result = {
-    state: value.getUint16(0 + offset, true),
-    timestamp: value.getUint32(4 + offset, true),
-    pressure: value.getFloat32(8 + offset, true),
-    temperature: value.getFloat32(12 + offset, true),
-    accX: value.getFloat32(16 + offset, true),
-    accY: value.getFloat32(20 + offset, true),
-    accZ: value.getFloat32(24 + offset, true),
+    state: readNextValue(value, "Uint16"),
+    timestamp: readNextValue(value, "Uint32"),
+    pressure: readNextValue(value, "Float32"),
+    temperature: readNextValue(value, "Float32"),
+    accX: readNextValue(value, "Float32"),
+    accY: readNextValue(value, "Float32"),
+    accZ: readNextValue(value, "Float32"),
 
-    gX: value.getFloat32(28 + offset, true),
-    gY: value.getFloat32(32 + offset, true),
-    gZ: value.getFloat32(36 + offset, true),
+    gX: readNextValue(value, "Float32"),
+    gY: readNextValue(value, "Float32"),
+    gZ: readNextValue(value, "Float32"),
 
-    pressureDelta: value.getFloat32(40 + offset, true),
-    kalmanPressureDelta: value.getFloat32(44 + offset, true),
-    altitude: value.getFloat32(48 + offset, true),
+    magX: readNextValue(value, "Float32"),
+    magY: readNextValue(value, "Float32"),
+    magZ: readNextValue(value, "Float32"),
 
-    kalmanPressure: value.getFloat32(52 + offset, true),
-    kalmanAltitude: value.getFloat32(56 + offset, true),
-    kalmanTemperature: value.getFloat32(60 + offset, true)
+    pitch: readNextValue(value, "Float32"),
+    roll: readNextValue(value, "Float32"),
+    yaw: readNextValue(value, "Float32"),
 
+    pressureDelta: readNextValue(value, "Float32"),
+    kalmanPressureDelta: readNextValue(value, "Float32"),
+    altitude: readNextValue(value, "Float32"),
+
+    kalmanPressure: readNextValue(value, "Float32"),
+    kalmanAltitude: readNextValue(value, "Float32"),
+    kalmanTemperature: readNextValue(value, "Float32"),
   };
 
   return result;

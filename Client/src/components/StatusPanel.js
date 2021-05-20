@@ -1,5 +1,6 @@
 import { DataGrid } from "@material-ui/data-grid";
 import React from "react";
+import RocketRenderer from '../components/RocketRenderer';
 
 const columns = [
   { field: "measurement", headerName: "Measurement", width: "100" },
@@ -24,6 +25,7 @@ class StatusPanel extends React.Component {
           columns={columns}
           pageSize={50}
         />
+        <RocketRenderer />
       </div>
     );
   }
