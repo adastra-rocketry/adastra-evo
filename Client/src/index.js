@@ -1,19 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
-import rootReducer from './reducer';
-import { applyMiddleware, createStore, compose } from 'redux'
 import './index.css';
-import AppRouter, { history } from './routers/AppRouter';
+import AppRouter, {  } from './routers/AppRouter';
 import reportWebVitals from './reportWebVitals';
-import thunkMiddleware from 'redux-thunk';
+import store from './store';
 
 import LoadingPage from './screens/LoadingScreen';
 
-const store = createStore(
-  rootReducer,
-  applyMiddleware(thunkMiddleware)
-);
 
 const jsx = (
   <React.StrictMode>
