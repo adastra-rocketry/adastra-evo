@@ -10,11 +10,20 @@ const columns = [
 class StatusPanel extends React.Component {
   render() {
     const { status } = this.props;
+    const plainStatus = {
+      ...status.currentDeviceState_MainData_Characteristic,
+      ...status.currentDeviceState_AccData_Characteristic,
+      ...status.currentDeviceState_GData_Characteristic,
+      ...status.currentDeviceState_MagData_Characteristic,
+      ...status.currentDeviceState_IMUData_Characteristic,
+      ...status.currentDeviceState_PressureData_Characteristic,
+      ...status.currentDeviceState_KalmanData_Characteristic
+    }
     const data = [];
-    for (let varName in status) {
+    for (let varName in plainStatus) {
       data.push({
         measurement: varName,
-        value: status[varName],
+        value: plainStatus[varName],
         id: varName
       });
     }
