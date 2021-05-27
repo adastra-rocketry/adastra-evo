@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'device_search.dart';
+import 'screens/device_search.dart';
 
 void main() {
   runApp(MyApp());

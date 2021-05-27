@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:evo_client/screens/device_main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
@@ -21,17 +24,17 @@ class DeviceSearchPage extends StatefulWidget {
 
 class _DeviceSearchPageState extends State<DeviceSearchPage> {
   List<ScanResult> _scanResults = [];
+  StreamSubscription<List<ScanResult>>? _scanSubscription;
 
   _DeviceSearchPageState() : super() {
-    _startScan();
-
+    //_startScan();
   }
 
   void _startScan() async {
     FlutterBlue flutterBlue = FlutterBlue.instance;
     _scanResults.clear();
 
-    var subscription = flutterBlue.scanResults.listen((results) {
+    _scanSubscription = flutterBlue.scanResults.listen((results) {
       // do something with scan results
       for (ScanResult r in results) {
         if(!_scanResults.contains(r)) {
@@ -45,12 +48,25 @@ class _DeviceSearchPageState extends State<DeviceSearchPage> {
     await flutterBlue.startScan(timeout: Duration(seconds: 4));
 
     // Stop scanning
-    subscription.cancel();
-    flutterBlue.stopScan();
+    _stopScan();
   }
 
-  void _deviceTap(ScanResult sr) {
+  Future<void> _stopScan() async {
+    FlutterBlue flutterBlue = FlutterBlue.instance;
+    flutterBlue.stopScan();
 
+    _scanSubscription?.cancel();
+    _scanSubscription = null;
+  }
+
+  void _deviceTap(ScanResult sr) async {
+    await _stopScan();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DeviceMainPage(title: sr.advertisementData.localName, device: sr.device),
+      ),
+    );
   }
 
   @override
