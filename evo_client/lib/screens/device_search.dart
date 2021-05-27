@@ -1,10 +1,6 @@
-import 'dart:async';
-
 import 'package:evo_client/provider/bluetooth.dart';
-import 'package:evo_client/screens/device_main.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:provider/provider.dart';
 
 class DeviceSearchPage extends StatefulWidget {
@@ -28,12 +24,16 @@ class DeviceSearchPage extends StatefulWidget {
 }
 
 class _DeviceSearchPageState extends State<DeviceSearchPage> {
-  _DeviceSearchPageState() : super() {
+  _DeviceSearchPageState() : super();
+
+  void _deviceTap(DiscoveredDevice sr) async {
+    await widget.selectDevice(sr);
+    Navigator.pushNamed(context, '/deviceMain');
   }
 
-  void _deviceTap(ScanResult sr) async {
-    await widget.selectDevice(sr.device);
-    Navigator.pushNamed(context, '/deviceMain');
+  void _startScan() async {
+    await Provider.of<Bluetooth>(context, listen: false).startScan(context);
+
   }
 
   @override
@@ -66,10 +66,10 @@ class _DeviceSearchPageState extends State<DeviceSearchPage> {
                     style: TextStyle(fontStyle: FontStyle.italic),
                   ),
                 )],
-              rows: bluetooth.scanResults.where((e) => e.advertisementData.localName.startsWith('AdAstra')).map((e) => DataRow(cells: <DataCell>[DataCell(Text(e.advertisementData.localName), onTap: () => {_deviceTap(e) }), DataCell(Text(e.rssi.toString()), onTap: () => {_deviceTap(e) })])).toList()
+              rows: bluetooth.scanResults.where((e) => e.name.startsWith('AdAstra')).map((e) => DataRow(cells: <DataCell>[DataCell(Text(e.name), onTap: () => {_deviceTap(e) }), DataCell(Text(e.rssi.toString()), onTap: () => {_deviceTap(e) })])).toList()
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: bluetooth.startScan,
+            onPressed: _startScan,
             tooltip: 'Increment',
             child: Icon(bluetooth.isScanning ? Icons.cancel : Icons.search),
           ), // This trailing comma makes auto-formatting nicer for build methods.

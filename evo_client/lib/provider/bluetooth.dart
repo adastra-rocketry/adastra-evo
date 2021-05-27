@@ -1,56 +1,81 @@
 import 'dart:async';
-import 'dart:collection';
-
+import 'dart:io';
 import 'package:evo_client/model/data_point.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:location_permissions/location_permissions.dart';
 
 class Bluetooth extends ChangeNotifier {
   /// Internal, private state of the cart.
+  final flutterReactiveBle = FlutterReactiveBle();
   DataPoint? _currentDataPoint;
-  BluetoothCharacteristic? characteristic;
-  BluetoothDevice? _currentBluetoothDevice;
-  StreamSubscription? characteristicSubscription;
+  DiscoveredDevice? _currentBluetoothDevice;
+  StreamSubscription? _characteristicSubscription;
+  StreamSubscription<DiscoveredDevice>? _scanStream;
+  StreamSubscription? _connectionStream;
 
   bool _isScanning = false;
-  List<ScanResult> _scanResults = [];
-  StreamSubscription<List<ScanResult>>? _scanSubscription;
+
+  List<DiscoveredDevice> _scanResults = [];
 
   /// An unmodifiable view of the items in the cart.
   DataPoint? get currentDataPoint => _currentDataPoint;
-  List<ScanResult> get scanResults => _scanResults;
+  List<DiscoveredDevice> get scanResults => _scanResults;
   bool get isScanning => _isScanning;
 
-  void startScan() async {
-    FlutterBlue flutterBlue = FlutterBlue.instance;
-    _scanResults.clear();
-    _isScanning = true;
-    notifyListeners();
+  Future<void> startScan(BuildContext context) async {
+    bool goForIt=false;
+    PermissionStatus permission;
+    if (Platform.isAndroid) {
+      permission = await LocationPermissions().requestPermissions();
+      if (permission == PermissionStatus.granted)
+        goForIt=true;
+    } else if (Platform.isIOS) {
+      goForIt=true;
+    }
 
-    _scanSubscription = flutterBlue.scanResults.listen((results) {
-      // do something with scan results
-      for (ScanResult r in results) {
-        if(!_scanResults.contains(r)) {
-            _scanResults.add(r);
-            notifyListeners();
+    if(goForIt) {
+      _scanResults.clear();
+      _isScanning = true;
+      notifyListeners();
+
+      _scanStream = flutterReactiveBle.scanForDevices(withServices: [Uuid.parse('0000181c-0000-1000-8000-00805f9b34fb')], scanMode: ScanMode.lowLatency).listen((r) {
+        if(_scanResults.where((element) => element.id == r.id).length == 0) {
+          _scanResults.add(r);
+          notifyListeners();
         }
-      }
-    });
-
-    await flutterBlue.startScan(timeout: Duration(seconds: 4));
-
-    // Stop scanning
-    await stopScan();
-    notifyListeners();
+      }, onError: (err) {
+        print(err);
+      });
+    }
   }
 
+  Future<void> showNoPermissionDialog(BuildContext context) async => showDialog<void>(
+    context: context,
+    barrierDismissible: false, // user must tap button!
+    builder: (BuildContext context) => AlertDialog(
+      title: const Text('No location permission '),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            const Text('No location permission granted.'),
+            const Text('Location permission is required for BLE to function.'),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('Acknowledge'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    ),
+  );
+
   Future<void> stopScan() async {
-    FlutterBlue flutterBlue = FlutterBlue.instance;
-    await flutterBlue.stopScan();
-
-    await _scanSubscription?.cancel();
-    _scanSubscription = null;
-
+    if(_scanStream != null) _scanStream?.cancel();
     _isScanning = false;
   }
 
@@ -64,37 +89,38 @@ class Bluetooth extends ChangeNotifier {
     }
   }
 
-  void _subscriptionError(Object error) {
-    print(error);
-  }
-
-  Future<void> connectToSelectedDevice(BluetoothDevice device) async {
-    await disconnectFromCurrentDevice();
-    _currentBluetoothDevice = device;
-    _currentBluetoothDevice?.state.listen((event) {
-      print(event);
+  Future<void> connectToSelectedDevice(DiscoveredDevice device) async {
+    _connectionStream = flutterReactiveBle.connectToAdvertisingDevice(
+      id: device.id,
+      withServices: [Uuid.parse('0000181c-0000-1000-8000-00805f9b34fb')],
+      prescanDuration: const Duration(seconds: 5),
+      servicesWithCharacteristicsToDiscover: { Uuid.parse('0000181c-0000-1000-8000-00805f9b34fb'): [Uuid.parse('00002ac2-0000-1000-8000-00805f9b34fb')]},
+      connectionTimeout: const Duration(seconds:  2),
+    ).listen((connectionState) {
+      // Handle connection state updates
+    }, onError: (Object error) {
+      // Handle a possible error
     });
-    await device.connect(timeout: new Duration(seconds: 5));
-    await device.requestMtu(185);
-    List<BluetoothService> services = await device.discoverServices();
-    services.where((s) => s.uuid == new Guid('0000181c-0000-1000-8000-00805f9b34fb')).forEach((service) async {
-      var characteristics = service.characteristics;
-      for(BluetoothCharacteristic c in characteristics.where((c) => c.uuid == new Guid('00002ac2-0000-1000-8000-00805f9b34fb'))) {
-        characteristic = c;
-        characteristicSubscription = characteristic?.value.listen(_parseNewDataPoint, onError: _subscriptionError, cancelOnError: false);
-        await characteristic?.setNotifyValue(true);
-      }
+
+    final mtu = await flutterReactiveBle.requestMtu(deviceId: device.id, mtu: 250);
+    print('set MTU to $mtu');
+
+    final characteristic = QualifiedCharacteristic(serviceId: Uuid.parse('0000181c-0000-1000-8000-00805f9b34fb'), characteristicId: Uuid.parse('00002ac2-0000-1000-8000-00805f9b34fb'), deviceId: device.id);
+    _characteristicSubscription = flutterReactiveBle.subscribeToCharacteristic(characteristic).listen((data) {
+      _parseNewDataPoint(data);
+    }, onError: (dynamic error) {
+      // code to handle errors
     });
 
     notifyListeners();
   }
 
   Future<void> disconnectFromCurrentDevice() async {
-    characteristicSubscription?.cancel();
-    characteristicSubscription = null;
-    characteristic = null;
+    _characteristicSubscription?.cancel();
+    _characteristicSubscription = null;
+    _connectionStream?.cancel();
+    _connectionStream = null;
     _currentDataPoint = null;
-    await _currentBluetoothDevice?.disconnect();
     _currentBluetoothDevice = null;
     notifyListeners();
   }

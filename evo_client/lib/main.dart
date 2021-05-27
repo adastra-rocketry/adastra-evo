@@ -1,7 +1,7 @@
 import 'package:evo_client/provider/bluetooth.dart';
 import 'package:evo_client/screens/device_main.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:provider/provider.dart';
 import 'screens/device_search.dart';
 
@@ -21,9 +21,9 @@ class MyApp extends StatefulWidget  {
 }
 
 class _MyAppState extends State<MyApp> {
-  BluetoothDevice? device;
+  DiscoveredDevice? device;
 
-  void selectDevice(BluetoothDevice newDevice) async {
+  void selectDevice(DiscoveredDevice newDevice) async {
     await Provider.of<Bluetooth>(context, listen: false).stopScan();
     await Provider.of<Bluetooth>(context, listen: false).connectToSelectedDevice(newDevice);
     setState(() {
