@@ -31,8 +31,13 @@ class _DeviceSearchPageState extends State<DeviceSearchPage> {
     Navigator.pushNamed(context, '/deviceMain');
   }
 
-  void _startScan() async {
-    await Provider.of<Bluetooth>(context, listen: false).startScan(context);
+  void _toggleScan() async {
+    var provider = Provider.of<Bluetooth>(context, listen: false);
+    if(provider.isScanning) {
+      await provider.stopScan();
+    } else {
+      await provider.startScan(context);
+    }
 
   }
 
@@ -69,8 +74,9 @@ class _DeviceSearchPageState extends State<DeviceSearchPage> {
               rows: bluetooth.scanResults.where((e) => e.name.startsWith('AdAstra')).map((e) => DataRow(cells: <DataCell>[DataCell(Text(e.name), onTap: () => {_deviceTap(e) }), DataCell(Text(e.rssi.toString()), onTap: () => {_deviceTap(e) })])).toList()
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: _startScan,
+            onPressed: _toggleScan,
             tooltip: 'Increment',
+            backgroundColor: bluetooth.isScanning ? Colors.redAccent : Colors.blueAccent,
             child: Icon(bluetooth.isScanning ? Icons.cancel : Icons.search),
           ), // This trailing comma makes auto-formatting nicer for build methods.
         );

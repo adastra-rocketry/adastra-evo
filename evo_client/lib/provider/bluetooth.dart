@@ -77,6 +77,7 @@ class Bluetooth extends ChangeNotifier {
   Future<void> stopScan() async {
     if(_scanStream != null) _scanStream?.cancel();
     _isScanning = false;
+    notifyListeners();
   }
 
   void _parseNewDataPoint(List<int> data) {
