@@ -22,7 +22,10 @@ environment:
 
 dependencies:
   flutter_blue:
+  provider:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
 
 

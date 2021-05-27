@@ -3,11 +3,25 @@
 #include "BluetoothStack.h"
 #include "Settings.h"
 
+#define RSSI_REASONABLE_SIGNAL -80 // A reasonable RSSI signal strength
+
+void blePeripheralConnectHandler(BLEDevice central) {
+  Serial.println("Connected event, central: ");
+  Serial.println(central.address());
+}
+
+void blePeripheralDisconnectHandler(BLEDevice central) {
+  Serial.println("Disconnected event, central: ");
+  Serial.println(central.address());
+}
+
+
 BluetoothStack::BluetoothStack() {
   
 }
 
 void BluetoothStack::Init() {  
+
   // begin initialization
   if (!BLE.begin()) {
     if(DEBUG) Serial.println("starting BLE failed!");
@@ -22,8 +36,10 @@ void BluetoothStack::Init() {
   BLE.setLocalName("AdAstra Evo");
   BLE.setAdvertisedService(bleMainService); // add the service UUID
   bleMainService.addCharacteristic(currentDataPointServiceChar);
-  
+  BLE.setEventHandler(BLEConnected, blePeripheralConnectHandler);
+  BLE.setEventHandler(BLEDisconnected, blePeripheralDisconnectHandler);
   BLE.addService(bleMainService);
+  BLE.setConnectable(true);
 
   
   /* Start advertising BLE.  It will start continuously transmitting BLE
@@ -35,7 +51,10 @@ void BluetoothStack::Init() {
   if(DEBUG) Serial.println("Bluetooth device active, waiting for connections...");
 }
 
-void BluetoothStack::Loop(SystemState &state) {  
+
+
+void BluetoothStack::Loop(SystemState &state) {
+  BLE.poll();
   BLE.advertise();  //this is the arduino libs static stuff
   WriteCurrentDataPoint(state.CurrentDataPoint);
 }

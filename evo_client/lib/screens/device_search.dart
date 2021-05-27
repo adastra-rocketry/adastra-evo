@@ -1,11 +1,16 @@
 import 'dart:async';
 
+import 'package:evo_client/provider/bluetooth.dart';
 import 'package:evo_client/screens/device_main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 
 class DeviceSearchPage extends StatefulWidget {
-  DeviceSearchPage({Key? key, required this.title}) : super(key: key);
+  DeviceSearchPage({Key? key, required this.title, required this.selectDevice}) : super(key: key);
+
+  Function selectDevice;
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -23,50 +28,12 @@ class DeviceSearchPage extends StatefulWidget {
 }
 
 class _DeviceSearchPageState extends State<DeviceSearchPage> {
-  List<ScanResult> _scanResults = [];
-  StreamSubscription<List<ScanResult>>? _scanSubscription;
-
   _DeviceSearchPageState() : super() {
-    //_startScan();
-  }
-
-  void _startScan() async {
-    FlutterBlue flutterBlue = FlutterBlue.instance;
-    _scanResults.clear();
-
-    _scanSubscription = flutterBlue.scanResults.listen((results) {
-      // do something with scan results
-      for (ScanResult r in results) {
-        if(!_scanResults.contains(r)) {
-          setState(() {
-            _scanResults.add(r);
-          });
-        }
-      }
-    });
-
-    await flutterBlue.startScan(timeout: Duration(seconds: 4));
-
-    // Stop scanning
-    _stopScan();
-  }
-
-  Future<void> _stopScan() async {
-    FlutterBlue flutterBlue = FlutterBlue.instance;
-    flutterBlue.stopScan();
-
-    _scanSubscription?.cancel();
-    _scanSubscription = null;
   }
 
   void _deviceTap(ScanResult sr) async {
-    await _stopScan();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DeviceMainPage(title: sr.advertisementData.localName, device: sr.device),
-      ),
-    );
+    await widget.selectDevice(sr.device);
+    Navigator.pushNamed(context, '/deviceMain');
   }
 
   @override
@@ -77,33 +44,37 @@ class _DeviceSearchPageState extends State<DeviceSearchPage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: DataTable(
-          showCheckboxColumn: false,
-          columns: const <DataColumn>[
-            DataColumn(
-              label: Text(
-                'Device Name',
-                style: TextStyle(fontStyle: FontStyle.italic),
-              ),
-            ), DataColumn(
-              label: Text(
-                'Signal strength',
-                style: TextStyle(fontStyle: FontStyle.italic),
-              ),
-            )],
-          rows: _scanResults.where((e) => e.advertisementData.localName.startsWith('AdAstra')).map((e) => DataRow(cells: <DataCell>[DataCell(Text(e.advertisementData.localName), onTap: () => {_deviceTap(e) }), DataCell(Text(e.rssi.toString()), onTap: () => {_deviceTap(e) })])).toList()
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _startScan,
-        tooltip: 'Increment',
-        child: Icon(Icons.search),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    return Consumer<Bluetooth>(
+      builder: (context, bluetooth, _) {
+        return Scaffold(
+          appBar: AppBar(
+            // Here we take the value from the MyHomePage object that was created by
+            // the App.build method, and use it to set our appbar title.
+            title: Text(widget.title),
+          ),
+          body: DataTable(
+              showCheckboxColumn: false,
+              columns: const <DataColumn>[
+                DataColumn(
+                  label: Text(
+                    'Device Name',
+                    style: TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ), DataColumn(
+                  label: Text(
+                    'Signal strength',
+                    style: TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                )],
+              rows: bluetooth.scanResults.where((e) => e.advertisementData.localName.startsWith('AdAstra')).map((e) => DataRow(cells: <DataCell>[DataCell(Text(e.advertisementData.localName), onTap: () => {_deviceTap(e) }), DataCell(Text(e.rssi.toString()), onTap: () => {_deviceTap(e) })])).toList()
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: bluetooth.startScan,
+            tooltip: 'Increment',
+            child: Icon(bluetooth.isScanning ? Icons.cancel : Icons.search),
+          ), // This trailing comma makes auto-formatting nicer for build methods.
+        );
+      }
     );
   }
 }
