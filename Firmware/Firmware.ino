@@ -5,6 +5,7 @@
 #include "Calculation.h"
 #include "Arduino.h"
 #include "FlightStateAnalyzer.h"
+#include "Watchdog.h"
 
 SoundModule Sound{};
 SystemState State;
@@ -12,6 +13,7 @@ BluetoothStack Ble;
 Sensors SensorReader;
 Calculation Calc;
 FlightStateAnalyzer Fla;
+Watchdog WD;
 
 
 void setup() {
@@ -22,6 +24,7 @@ void setup() {
   Ble.Init();
   Calc.Init();
   Fla.Init();
+  WD.Init();
 }
 
 void loop() {
@@ -31,4 +34,5 @@ void loop() {
   Fla.Loop(State);
   Sound.Loop(State);
   Ble.Loop(State);
+  WD.Loop(State);
 }
