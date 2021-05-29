@@ -1,5 +1,5 @@
 /*
-  VehicleState.h - Library for storing and retrieving sensor data
+  VehicleStateType.h - Library for storing and retrieving sensor data
 */
 #pragma once
 

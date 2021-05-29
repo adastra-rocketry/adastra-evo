@@ -16,5 +16,6 @@ class SystemState {
     float LaunchAltitude = 145.0f;
     float HeighestAltitude = 0;
     float PressureNN = 1027.6f;
+    void StartNewRecording();
   private:
 };

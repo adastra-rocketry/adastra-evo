@@ -2,6 +2,7 @@
 #include <ArduinoBLE.h>
 #include "BluetoothStack.h"
 #include "Settings.h"
+#include "VehicleStateType.h"
 
 #define RSSI_REASONABLE_SIGNAL -80 // A reasonable RSSI signal strength
 
@@ -36,6 +37,7 @@ void BluetoothStack::Init() {
   BLE.setLocalName("AdAstra Evo");
   BLE.setAdvertisedService(bleMainService); // add the service UUID
   bleMainService.addCharacteristic(currentDataPointServiceChar);
+  bleMainService.addCharacteristic(commandServiceChar);
   BLE.setEventHandler(BLEConnected, blePeripheralConnectHandler);
   BLE.setEventHandler(BLEDisconnected, blePeripheralDisconnectHandler);
   BLE.addService(bleMainService);
@@ -56,17 +58,62 @@ void BluetoothStack::Init() {
 void BluetoothStack::Loop(SystemState &state) {
   BLE.poll();
   BLE.advertise();  //this is the arduino libs static stuff
-  WriteCurrentDataPoint(state.CurrentDataPoint);
+  BLEDevice central = BLE.central();
+  if (central) {
+    WriteCurrentDataPoint(state.CurrentDataPoint);
+    if (central.connected()) {
+      ProcessCommand(state);
+    }
+  }
 }
 
 
 void BluetoothStack::WriteCurrentDataPoint(DataPoint& dataPoint) {
-    long currentMillis = millis();
-    // if 200ms have passed
-    if(currentMillis - previousMillis >= BLE_UPDATE_INTERVAL) {
-      unsigned char b[sizeof(dataPoint)];
-      memcpy(b, &dataPoint, sizeof(dataPoint));
-      currentDataPointServiceChar.writeValue(b, sizeof(b)); // and publish it via BT
-      previousMillis = currentMillis;
+  long currentMillis = millis();
+  // if 200ms have passed
+  if(currentMillis - previousMillis >= BLE_UPDATE_INTERVAL) {
+    unsigned char b[sizeof(dataPoint)];
+    memcpy(b, &dataPoint, sizeof(dataPoint));
+    currentDataPointServiceChar.writeValue(b, sizeof(b)); // and publish it via BT
+    previousMillis = currentMillis;
+  }
+}
+
+void BluetoothStack::ProcessCommand(SystemState& state) {
+  if (commandServiceChar.written()) {
+    Command command;
+    const uint8_t* b;
+    b = commandServiceChar.value();
+    memcpy(&command, b, sizeof(command));
+    
+    if(DEBUG) {
+      Serial.print("Got new command:");
+      Serial.print(command.Type);
+      Serial.println();
+      Serial.print(command.Arg1, 3);
+      Serial.println();
+      Serial.print(command.Arg2, 3);
+      Serial.println();
     }
+
+    switch(command.Type) {
+      case 'r':
+        state.StartNewRecording();
+        break;
+      case 'l':
+        state.VehicleState = VehicleStateType::LaunchIdle;
+        break;
+      case 's':
+        state.LaunchAltitude = command.Arg1;
+        state.PressureNN = command.Arg2;
+        state.StartNewRecording();
+        break;
+      default:
+        if(DEBUG) {
+          Serial.print("Unknown command: ");
+          Serial.println(command.Type);
+        }
+    }
+    
+  }
 }

@@ -125,4 +125,8 @@ class Bluetooth extends ChangeNotifier {
     _currentBluetoothDevice = null;
     notifyListeners();
   }
+
+  Future<void> sendCommand(BluetoothCommand command) async {
+
+  }
 }
