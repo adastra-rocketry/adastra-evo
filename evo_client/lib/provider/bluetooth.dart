@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:evo_client/model/bluetooth_command.dart';
 import 'package:evo_client/model/data_point.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
@@ -39,7 +40,7 @@ class Bluetooth extends ChangeNotifier {
       _isScanning = true;
       notifyListeners();
 
-      _scanStream = flutterReactiveBle.scanForDevices(withServices: [Uuid.parse('0000181c-0000-1000-8000-00805f9b34fb')], scanMode: ScanMode.lowLatency).listen((r) {
+      _scanStream = flutterReactiveBle.scanForDevices(withServices: [Uuid.parse('92aab162-79af-422f-a53b-fca7b98e2327')], scanMode: ScanMode.lowLatency).listen((r) {
         if(_scanResults.where((element) => element.id == r.id).length == 0) {
           _scanResults.add(r);
           notifyListeners();
@@ -91,11 +92,12 @@ class Bluetooth extends ChangeNotifier {
   }
 
   Future<void> connectToSelectedDevice(DiscoveredDevice device) async {
+    _currentBluetoothDevice = device;
     _connectionStream = flutterReactiveBle.connectToAdvertisingDevice(
       id: device.id,
-      withServices: [Uuid.parse('0000181c-0000-1000-8000-00805f9b34fb')],
+      withServices: [Uuid.parse('92aab162-79af-422f-a53b-fca7b98e2327')],
       prescanDuration: const Duration(seconds: 5),
-      servicesWithCharacteristicsToDiscover: { Uuid.parse('0000181c-0000-1000-8000-00805f9b34fb'): [Uuid.parse('00002ac2-0000-1000-8000-00805f9b34fb')]},
+      servicesWithCharacteristicsToDiscover: { Uuid.parse('92aab162-79af-422f-a53b-fca7b98e2327'): [Uuid.parse('61e8de2f-935b-42b2-ae5b-50d444b540eb')]},
       connectionTimeout: const Duration(seconds:  2),
     ).listen((connectionState) {
       // Handle connection state updates
@@ -106,7 +108,7 @@ class Bluetooth extends ChangeNotifier {
     final mtu = await flutterReactiveBle.requestMtu(deviceId: device.id, mtu: 250);
     print('set MTU to $mtu');
 
-    final characteristic = QualifiedCharacteristic(serviceId: Uuid.parse('0000181c-0000-1000-8000-00805f9b34fb'), characteristicId: Uuid.parse('00002ac2-0000-1000-8000-00805f9b34fb'), deviceId: device.id);
+    final characteristic = GetCharacteristic('61e8de2f-935b-42b2-ae5b-50d444b540eb') as QualifiedCharacteristic;
     _characteristicSubscription = flutterReactiveBle.subscribeToCharacteristic(characteristic).listen((data) {
       _parseNewDataPoint(data);
     }, onError: (dynamic error) {
@@ -114,6 +116,14 @@ class Bluetooth extends ChangeNotifier {
     });
 
     notifyListeners();
+  }
+
+  QualifiedCharacteristic? GetCharacteristic(charGuid) {
+    if(_currentBluetoothDevice != null) {
+      return QualifiedCharacteristic(serviceId: Uuid.parse('92aab162-79af-422f-a53b-fca7b98e2327'), characteristicId: Uuid.parse(charGuid), deviceId: _currentBluetoothDevice?.id as String);
+    } else {
+      return null;
+    }
   }
 
   Future<void> disconnectFromCurrentDevice() async {
@@ -127,6 +137,8 @@ class Bluetooth extends ChangeNotifier {
   }
 
   Future<void> sendCommand(BluetoothCommand command) async {
-
+    var data = command.asBytes();
+    final characteristic = GetCharacteristic('da4b4a5a-bdd5-4e9f-945a-55180c8b3f53') as QualifiedCharacteristic;
+    await flutterReactiveBle.writeCharacteristicWithResponse(characteristic, value: data);
   }
 }

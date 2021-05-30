@@ -93,13 +93,6 @@ void BluetoothStack::UpdateCharacteristics(SystemState &state) {
     memcpy(b, &state.CurrentDataPoint, sizeof(state.CurrentDataPoint));
     currentDataPointServiceChar.writeValue(b, sizeof(b)); // and publish it via BT
 
-    if(DEBUG) Serial.println("Update commandServiceChar");
-    // init command characteristic   
-    Command command;
-    unsigned char cb[sizeof(command)];
-    memcpy(cb, &command, sizeof(command));
-    commandServiceChar.writeValue(cb, sizeof(cb)); // and publish it via BT
-
     previousMillis = currentMillis;
   }
   if(DEBUG) Serial.println("END BluetoothStack::UpdateCharacteristics()");

@@ -1,5 +1,6 @@
 import 'package:evo_client/provider/bluetooth.dart';
 import 'package:evo_client/screens/device_current_state.dart';
+import 'package:evo_client/screens/device_flight.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,8 +16,8 @@ class DeviceMainPage extends StatefulWidget {
 class _DeviceMainPageState extends State<DeviceMainPage> {
   int _currentIndex = 0;
   final List<Widget> _children = [
-    DeviceCurrentStatePage(title: 'Status'),
-    DeviceCurrentStatePage(title: 'Settings')
+    DeviceFlightPage(title: 'Flight'),
+    DeviceCurrentStatePage(title: 'Status')
   ];
 
 
@@ -52,12 +53,12 @@ class _DeviceMainPageState extends State<DeviceMainPage> {
         currentIndex: _currentIndex, // new
         items: [
           BottomNavigationBarItem(
-            icon: new Icon(Icons.home),
-            label: 'Home',
+            icon: new Icon(Icons.airplanemode_on),
+            label: 'Flight',
           ),
           BottomNavigationBarItem(
-            icon: new Icon(Icons.mail),
-            label: 'Messages',
+            icon: new Icon(Icons.view_week_outlined),
+            label: 'Status',
           ),
         ],
       ),
