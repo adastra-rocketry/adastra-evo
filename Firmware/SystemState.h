@@ -5,6 +5,7 @@
 
 #include "DataPoint.h"
 #include "VehicleStateType.h"
+#include "Settings.h"
 
 class SystemState {
   public:
@@ -13,9 +14,8 @@ class SystemState {
     VehicleStateType VehicleState = VehicleStateType::Idle;
     DataPoint CurrentDataPoint;
     int ErrorCode;
-    float LaunchAltitude = 145.0f;
     float HeighestAltitude = 0;
-    float PressureNN = 1027.6f;
     void StartNewRecording();
+    SettingsDto Settings;
   private:
 };

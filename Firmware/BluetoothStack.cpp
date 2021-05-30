@@ -22,7 +22,7 @@ BluetoothStack::BluetoothStack() {
 }
 
 void BluetoothStack::Init() {  
-
+  if(DEBUG) Serial.println("BEGIN BluetoothStack::Init()");
   // begin initialization
   if (!BLE.begin()) {
     if(DEBUG) Serial.println("starting BLE failed!");
@@ -51,35 +51,62 @@ void BluetoothStack::Init() {
   // start advertising
   BLE.advertise();
   if(DEBUG) Serial.println("Bluetooth device active, waiting for connections...");
+  if(DEBUG) Serial.println("END BluetoothStack::Init()");
 }
 
 
 
 void BluetoothStack::Loop(SystemState &state) {
+  if(DEBUG) Serial.println("BEGIN BluetoothStack::Loop()");
   BLE.poll();
-  BLE.advertise();  //this is the arduino libs static stuff
+  BLE.advertise();
   BLEDevice central = BLE.central();
   if (central) {
-    WriteCurrentDataPoint(state.CurrentDataPoint);
     if (central.connected()) {
-      ProcessCommand(state);
+      // Check for reasonable RSSI signal strength.
+      if (central.rssi() >= RSSI_REASONABLE_SIGNAL) {
+        UpdateCharacteristics(state);  
+
+
+        ProcessCommand(state);
+      } else {
+        // Until the defect is fixed, we force disconnection
+        // of the central device.
+        if (!central.disconnect()) {
+          central.disconnect();          
+        }                
+      }
+
     }
   }
+  if(DEBUG) Serial.println("END BluetoothStack::Loop()");
 }
 
 
-void BluetoothStack::WriteCurrentDataPoint(DataPoint& dataPoint) {
+void BluetoothStack::UpdateCharacteristics(SystemState &state) {
+  if(DEBUG) Serial.println("BEGIN BluetoothStack::UpdateCharacteristics()");
   long currentMillis = millis();
   // if 200ms have passed
   if(currentMillis - previousMillis >= BLE_UPDATE_INTERVAL) {
-    unsigned char b[sizeof(dataPoint)];
-    memcpy(b, &dataPoint, sizeof(dataPoint));
+    if(DEBUG) Serial.println("Update currentDataPointServiceChar");
+    unsigned char b[sizeof(state.CurrentDataPoint)];
+    memcpy(b, &state.CurrentDataPoint, sizeof(state.CurrentDataPoint));
     currentDataPointServiceChar.writeValue(b, sizeof(b)); // and publish it via BT
+
+    if(DEBUG) Serial.println("Update commandServiceChar");
+    // init command characteristic   
+    Command command;
+    unsigned char cb[sizeof(command)];
+    memcpy(cb, &command, sizeof(command));
+    commandServiceChar.writeValue(cb, sizeof(cb)); // and publish it via BT
+
     previousMillis = currentMillis;
   }
+  if(DEBUG) Serial.println("END BluetoothStack::UpdateCharacteristics()");
 }
 
 void BluetoothStack::ProcessCommand(SystemState& state) {
+  if(DEBUG) Serial.println("BEGIN BluetoothStack::ProcessCommand()");
   if (commandServiceChar.written()) {
     Command command;
     const uint8_t* b;
@@ -104,8 +131,9 @@ void BluetoothStack::ProcessCommand(SystemState& state) {
         state.VehicleState = VehicleStateType::LaunchIdle;
         break;
       case 's':
-        state.LaunchAltitude = command.Arg1;
-        state.PressureNN = command.Arg2;
+        state.Settings.LaunchAltitude = command.Arg1;
+        state.Settings.PressureNN = command.Arg2;
+        strcpy(state.Settings.Name, command.Arg3);
         state.StartNewRecording();
         break;
       default:
@@ -114,6 +142,6 @@ void BluetoothStack::ProcessCommand(SystemState& state) {
           Serial.println(command.Type);
         }
     }
-    
   }
+  if(DEBUG) Serial.println("END BluetoothStack::ProcessCommand()");
 }

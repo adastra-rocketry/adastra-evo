@@ -18,9 +18,9 @@ class BluetoothStack
   private:
     BLEService bleMainService{"181C"};
     BLECharacteristic currentDataPointServiceChar{"2AC2", BLERead | BLENotify | BLEIndicate, sizeof(DataPoint)};
-    BLECharacteristic commandServiceChar{"19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWrite, sizeof(Command)};
+    BLECharacteristic commandServiceChar{"19B10001-E8F2-537E-4F6C-D104768A1214", BLERead | BLEWriteWithoutResponse | BLEWrite, sizeof(Command)};
     long previousMillis;
     void ProcessCommand(SystemState& state);
     
-    void WriteCurrentDataPoint(DataPoint &dataPoint);
+    void UpdateCharacteristics(SystemState &state);
 };
