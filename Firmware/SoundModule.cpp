@@ -5,7 +5,7 @@
 
 
 SoundModule::SoundModule() {
-  
+  tone(BUZZER_PIN, 800, 100);
 }
 
 void SoundModule::Loop(SystemState &state) {
