@@ -38,6 +38,7 @@ void BluetoothStack::Init() {
   BLE.setAdvertisedService(bleMainService); // add the service UUID
   bleMainService.addCharacteristic(currentDataPointServiceChar);
   bleMainService.addCharacteristic(commandServiceChar);
+  bleMainService.addCharacteristic(settingsServiceChar);
   BLE.setEventHandler(BLEConnected, blePeripheralConnectHandler);
   BLE.setEventHandler(BLEDisconnected, blePeripheralDisconnectHandler);
   BLE.addService(bleMainService);
@@ -93,6 +94,11 @@ void BluetoothStack::UpdateCharacteristics(SystemState &state) {
     memcpy(b, &state.CurrentDataPoint, sizeof(state.CurrentDataPoint));
     currentDataPointServiceChar.writeValue(b, sizeof(b)); // and publish it via BT
 
+
+    unsigned char bs[sizeof(state.Settings)];
+    memcpy(bs, &state.Settings, sizeof(state.Settings));
+    settingsServiceChar.writeValue(bs, sizeof(bs)); // and publish it via BT
+    
     previousMillis = currentMillis;
   }
   if(DEBUG) Serial.println("END BluetoothStack::UpdateCharacteristics()");
