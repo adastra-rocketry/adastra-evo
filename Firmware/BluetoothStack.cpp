@@ -4,9 +4,6 @@
 #include "Settings.h"
 #include "VehicleStateType.h"
 
-#define RSSI_REASONABLE_SIGNAL -80 // A reasonable RSSI signal strength
-
-
 BluetoothStack::BluetoothStack() {
   
 }

@@ -1,5 +1,5 @@
 #pragma once
-#define DEBUG true
+#define DEBUG false
 #define SOUND true
 #define BUZZER_PIN 8
 #define SAVE_INTERVAL 70
