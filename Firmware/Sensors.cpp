@@ -7,23 +7,20 @@ Sensors::Sensors() {
 void Sensors::Init() {
   if(DEBUG) Serial.println("BEGIN Sensors::Init()");
   InitIMU();
-  InitTemperatureSensor();
+  InitTemperatureAndHumidity();
   InitBarometer();
   if(DEBUG) Serial.println("END Sensors::Init()");
 }
 
-
-
 void Sensors::InitBarometer() {
-  delay(500);
-  if (!lps.begin(&Wire1)) {
+  if (!lps35hw.begin_I2C(0x5C, &Wire1)) {
     if(DEBUG) Serial.println("Failed to initialize pressure sensor!");
     while (1) {}
   }
+  lps35hw.setDataRate(LPS35HW_RATE_25_HZ);
 }
 
 void Sensors::InitIMU() {
-  delay(500);
   if (!IMU.begin()) {
     if(DEBUG) Serial.println("Failed to initialize IMU!");
     IMU.end();
@@ -31,54 +28,27 @@ void Sensors::InitIMU() {
   }
 }
 
-void Sensors::InitTemperatureSensor() {
-  delay(1000);
-  if (!HTS.begin()) {
+void Sensors::InitTemperatureAndHumidity() {
+  if (!hts.begin_I2C(0x5F, &Wire1, 0)) {
     if(DEBUG) Serial.println("Failed to init temperature sensor!");
-    HTS.end();
-    InitTemperatureSensor();
-  } else {
-    float temperature = ReadTemperature();
-    if(DEBUG) {
-      Serial.print("Initial Temperature: ");
-      Serial.println(temperature);
-    }
-    
-    if(temperature == 0.00f) {
-      HTS.end();
-      if(DEBUG) Serial.println("Temperature sensor reads strange values!");
-      InitTemperatureSensor();
-    }
+    while (1);
   }
+  hts.setDataRate(HTS221_RATE_12_5_HZ);
 }
 
 void Sensors::Loop(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN Sensors::Loop()");
-
-  long currentMillis = millis();
-  if(currentMillis - previousMillis >= SAVE_INTERVAL) {  
-    float temperature = ReadTemperature();
-    Serial.flush();
-    float pressure = ReadPressure();
-    Serial.flush();
-    float humidity = ReadHumidity();
-    Serial.flush();
-    float acc_x, acc_y, acc_z;
-    ReadAcceleration(acc_x, acc_y, acc_z);
-    Serial.flush();
-    float g_x, g_y, g_z;
-    ReadGyroscope(g_x, g_y, g_z);
-    Serial.flush();
-    float m_x, m_y, m_z;
-    ReadMagneticField(m_x, m_y, m_z);
-    Serial.flush();
-    DataPoint newItem = {state.VehicleState, millis(), pressure, temperature, acc_x, acc_y, acc_z, g_x, g_y, g_z, m_x, m_y, m_z};
-    Serial.flush();
-    state.CurrentDataPoint = newItem;    
-    Serial.flush();
-
-    previousMillis = currentMillis;
-  }
+  float temperature, humidity;
+  ReadTemperatureAndHumidity(temperature, humidity);
+  float pressure = ReadPressure();
+  float acc_x, acc_y, acc_z;
+  ReadAcceleration(acc_x, acc_y, acc_z);
+  float g_x, g_y, g_z;
+  ReadGyroscope(g_x, g_y, g_z);
+  float m_x, m_y, m_z;
+  ReadMagneticField(m_x, m_y, m_z);
+  DataPoint newItem = {state.VehicleState, millis(), pressure, temperature, acc_x, acc_y, acc_z, g_x, g_y, g_z, m_x, m_y, m_z};
+  state.CurrentDataPoint = newItem;
   if(DEBUG) Serial.println("END Sensors::Loop()");
 }
 
@@ -111,15 +81,16 @@ void Sensors::ReadMagneticField(float &m_x, float &m_y, float &m_z) {
 
 float Sensors::ReadPressure() {
   if(DEBUG) Serial.println("BEGIN Sensors::ReadPressure()");
-  return lps.readPressure();
+  return lps35hw.readPressure();
 }
 
-float Sensors::ReadTemperature() {
-  if(DEBUG) Serial.println("BEGIN Sensors::ReadTemperature()");
-  return HTS.readTemperature();
-}
+void Sensors::ReadTemperatureAndHumidity(float& temp, float &humidity) {
+  if(DEBUG) Serial.println("BEGIN Sensors::ReadTemperatureAndHumidity()");
+  sensors_event_t temp_reading;
+  sensors_event_t humidity_reading;
+  hts.getEvent(&temp_reading, &humidity_reading);
 
-float Sensors::ReadHumidity() {
-  if(DEBUG) Serial.println("BEGIN Sensors::ReadHumidity()");
-  return HTS.readHumidity();
+  temp = temp_reading.temperature;
+  humidity = humidity_reading.relative_humidity;
+  if(DEBUG) Serial.println("END Sensors::ReadTemperatureAndHumidity()");
 }

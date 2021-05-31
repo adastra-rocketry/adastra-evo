@@ -23,7 +23,7 @@ void Watchdog::Loop(SystemState &state) {
   #if defined(ARDUINO_ARDUINO_NANO33BLE)
     // This segment of code only exists when compiled and loaded onto an
     // Arduino Nano 33 BLE and BLE Sense
-    Serial.println("rearming WD");
+    if(DEBUG) Serial.println("Rearming WD");
     NRF_WDT->RR[0] = WDT_RR_RR_Reload;
   #endif
 }

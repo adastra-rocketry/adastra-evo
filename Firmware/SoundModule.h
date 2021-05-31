@@ -2,10 +2,6 @@
 
 #include "SystemState.h"
 
-const int DURATION_BEEP = 200;
-const int DURATION_PAUSE = 200;
-
-
 class SoundModule
 {
   public:

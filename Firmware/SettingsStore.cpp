@@ -11,7 +11,7 @@ void SettingsStore::Init(SystemState &state) {
 }
 
 void SettingsStore::ReadFromEEPROM(SettingsDto &settings) {
-  uint8_t data[sizeof(SettingsDto)];
+  uint8_t data[sizeof(settings)];
   NVRAM.read_block(data, 0, sizeof(settings));
   memcpy(data, &settings, sizeof(settings));
 }
