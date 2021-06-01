@@ -26,8 +26,6 @@ void BluetoothStack::Init() {
   bleMainService.addCharacteristic(currentDataPointServiceChar);
   bleMainService.addCharacteristic(commandServiceChar);
   BLE.addService(bleMainService);
-  BLE.setConnectable(true);
-
   
   /* Start advertising BLE.  It will start continuously transmitting BLE
      advertising packets and will be visible to remote BLE central devices
@@ -48,6 +46,8 @@ void BluetoothStack::Loop(SystemState &state) {
 
 void BluetoothStack::Update(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN BluetoothStack::Update()");
+  
+  digitalWrite(YELLOW_LED, HIGH);
   BLEDevice central = BLE.central();
   if (central) {
     if (central.connected()) {
@@ -55,6 +55,7 @@ void BluetoothStack::Update(SystemState &state) {
       ProcessCommand(state);
     }
   }
+  digitalWrite(YELLOW_LED, LOW);
   if(DEBUG) Serial.println("END BluetoothStack::Update()");
 }
 
@@ -89,7 +90,7 @@ void BluetoothStack::ProcessCommand(SystemState& state) {
         state.StartNewRecording();
         break;
       case 'l':
-        state.VehicleState = VehicleStateType::LaunchIdle;
+        state.UpdateFlightState(VehicleStateType::LaunchIdle);
         break;
       case 's':
         state.Settings.LaunchAltitude = command.Arg1;

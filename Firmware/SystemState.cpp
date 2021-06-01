@@ -1,5 +1,7 @@
 #include "SystemState.h"
 #include "VehicleStateType.h"
+#include "Settings.h"
+#include <Arduino.h>
 
 SystemState::SystemState() {
 
@@ -12,4 +14,9 @@ void SystemState::Init() {
 
 void SystemState::StartNewRecording() {
   
+}
+
+void SystemState::UpdateFlightState(VehicleStateType newState) {
+  VehicleState = newState;
+  tone(BUZZER_PIN, 800, 100);
 }

@@ -16,6 +16,8 @@ class SystemState {
     int ErrorCode;
     float HeighestAltitude = 0;
     void StartNewRecording();
+    void UpdateFlightState(VehicleStateType newState);
+
     SettingsDto Settings;
   private:
 };

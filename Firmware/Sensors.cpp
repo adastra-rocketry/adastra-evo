@@ -38,6 +38,7 @@ void Sensors::InitTemperatureAndHumidity() {
 
 void Sensors::Loop(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN Sensors::Loop()");
+  digitalWrite(GREEN_LED, HIGH);
   float temperature, humidity;
   ReadTemperatureAndHumidity(temperature, humidity);
   float pressure = ReadPressure();
@@ -49,6 +50,7 @@ void Sensors::Loop(SystemState &state) {
   ReadMagneticField(m_x, m_y, m_z);
   DataPoint newItem = {state.VehicleState, millis(), pressure, temperature, acc_x, acc_y, acc_z, g_x, g_y, g_z, m_x, m_y, m_z};
   state.CurrentDataPoint = newItem;
+  digitalWrite(GREEN_LED, LOW);
   if(DEBUG) Serial.println("END Sensors::Loop()");
 }
 

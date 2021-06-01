@@ -8,6 +8,9 @@
 #include "Watchdog.h"
 #include "SettingsStore.h"
 
+#include <mbed.h>
+#include <mbed_mem_trace.h>
+
 SoundModule Sound{};
 SystemState State;
 SettingsStore SettingsStore;
@@ -22,6 +25,7 @@ unsigned long previousBLEUpdateMillis = 0;
 
 void setup() {
   Serial.begin(115200);
+  InitLEDs();
   State.Init();
   //SettingsStore.Init(State);
   SensorReader.Init();
@@ -31,6 +35,8 @@ void setup() {
   WD.Init();
   if(DEBUG) Serial.println("END Setup()");
 }
+
+char printEvent[100];
 
 void loop() {
   if(DEBUG) Serial.println("Begin Loop()");
@@ -48,7 +54,36 @@ void loop() {
   if(currentMillis - previousBLEUpdateMillis >= BLE_UPDATE_INTERVAL) {
     Ble.Update(State);
     previousBLEUpdateMillis = currentMillis;
+    //print_memory_info(printEvent, sizeof(printEvent));
   }
   
   if(DEBUG) Serial.println("END Loop()");
+}
+
+void InitLEDs() {
+  pinMode(GREEN_LED, OUTPUT);
+  digitalWrite(GREEN_LED, LOW);
+  pinMode(RED_LED, OUTPUT);
+  digitalWrite(RED_LED, LOW);
+  pinMode(YELLOW_LED, OUTPUT);
+  digitalWrite(YELLOW_LED, LOW);
+}
+
+void print_memory_info(char* printEvent, int iSize) {
+    // allocate enough room for every thread's stack statistics
+    int cnt = osThreadGetCount();
+    mbed_stats_stack_t *stats = (mbed_stats_stack_t*) malloc(cnt * sizeof(mbed_stats_stack_t));
+ 
+    cnt = mbed_stats_stack_get_each(stats, cnt);
+    for (int i = 0; i < cnt; i++) {
+        snprintf_P(printEvent, iSize, "Thread: 0x%lX, Stack size: %lu / %lu\r\n", stats[i].thread_id, stats[i].max_size, stats[i].reserved_size);
+        Serial.println(printEvent);
+    }
+    free(stats);
+ 
+    // Grab the heap statistics
+    mbed_stats_heap_t heap_stats;
+    mbed_stats_heap_get(&heap_stats);
+    snprintf_P(printEvent, iSize, "Heap size: %lu / %lu bytes\r\n", heap_stats.current_size, heap_stats.reserved_size);
+    Serial.println(printEvent);
 }
