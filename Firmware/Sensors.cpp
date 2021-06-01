@@ -6,12 +6,27 @@ Sensors::Sensors() {
 
 void Sensors::Init() {
   if(DEBUG) Serial.println("BEGIN Sensors::Init()");
-  Wire1.setClock(10000);
+  //Wire1.setClock(10000);
+  StartSensors();
+
+  if(DEBUG) Serial.println("END Sensors::Init()");
+}
+
+void Sensors::StartSensors() {
+  digitalWrite(PIN_ENABLE_SENSORS_3V3, HIGH);
+  digitalWrite(PIN_ENABLE_I2C_PULLUP, HIGH);
+  Wire1.begin();
   InitIMU();
   InitMPU6050();
   InitTemperatureAndHumidity();
   InitBarometer();
-  if(DEBUG) Serial.println("END Sensors::Init()");
+  Wire1Stopped = false;
+}
+
+void Sensors::StopSensors() {
+  digitalWrite(PIN_ENABLE_SENSORS_3V3, LOW);
+  digitalWrite(PIN_ENABLE_I2C_PULLUP, LOW);
+  Wire1Stopped = true;
 }
 
 void Sensors::InitBarometer() {
@@ -34,7 +49,7 @@ void Sensors::InitMPU6050() {
   // Try to initialize!
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
-    backupIMUAvailable = false;
+    BackupIMUAvailable = false;
   } else {
     mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
     mpu.setGyroRange(MPU6050_RANGE_500_DEG);
@@ -52,6 +67,12 @@ void Sensors::InitTemperatureAndHumidity() {
 
 void Sensors::Loop(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN Sensors::Loop()");
+
+  if(Wire1Stopped) StartSensors();
+  
+  // check if a read took too long and restart the I2C-Bus if needed
+  unsigned long readStart = millis();
+
   digitalWrite(GREEN_LED, HIGH);
 
   // Update DataPoint
@@ -79,7 +100,7 @@ void Sensors::Loop(SystemState &state) {
     state.SensorReadingsReady = false;
   }
 
-  if(backupIMUAvailable) {
+  if(BackupIMUAvailable) {
     ReadMPU6050(
 
       state.CurrentDataPoint.Back_Acc_X, 
@@ -90,7 +111,11 @@ void Sensors::Loop(SystemState &state) {
       state.CurrentDataPoint.Back_G_Z, 
       state.CurrentDataPoint.Back_Temperature
     );
-  }  
+  }
+  if(millis() - readStart > SAVE_INTERVAL * 2) {
+    StopSensors();
+  }
+
   digitalWrite(GREEN_LED, LOW);
   if(DEBUG) Serial.println("END Sensors::Loop()");
 }
@@ -104,7 +129,7 @@ void Sensors::ReadMPU6050(float &acc_x, float &acc_y, float &acc_z, float &g_x, 
   g_x = g.gyro.x;
   g_y = g.gyro.y;
   g_z = g.gyro.z;
-  temperature = temp.temperature;
+  temperature = temp.temperature / 340.0 + 36.53;
   if(DEBUG) Serial.println("END Sensors::ReadMPU6050()");
 }
 

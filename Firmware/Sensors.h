@@ -20,8 +20,12 @@ class Sensors
     void Init();
     void Loop(SystemState &state);
   private:
+    void StartSensors();
+    void StopSensors();
+    unsigned long LastSensorReadingStart = 0;
     int i = 0;
-    bool backupIMUAvailable = true;
+    bool BackupIMUAvailable = true;
+    bool Wire1Stopped = false;
     Adafruit_LPS35HW lps35hw;
     Adafruit_HTS221 hts;
     Adafruit_MPU6050 mpu;

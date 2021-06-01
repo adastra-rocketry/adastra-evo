@@ -27,6 +27,8 @@ unsigned long previousBLEUpdateMillis = 0;
 
 void setup() {
   Serial.begin(115200);
+  Wire.begin();
+  Wire1.begin();
   InitLEDs();
   State.Init();
   //SettingsStore.Init(State);
