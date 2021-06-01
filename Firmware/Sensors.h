@@ -20,6 +20,8 @@ class Sensors
     void Init();
     void Loop(SystemState &state);
   private:
+    int i = 0;
+    bool backupIMUAvailable = true;
     Adafruit_LPS35HW lps35hw;
     Adafruit_HTS221 hts;
     Adafruit_MPU6050 mpu;

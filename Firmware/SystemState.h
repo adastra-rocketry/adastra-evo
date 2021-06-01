@@ -17,7 +17,7 @@ class SystemState {
     float HeighestAltitude = 0;
     void StartNewRecording();
     void UpdateFlightState(VehicleStateType newState);
-
     SettingsDto Settings;
+    bool SensorReadingsReady = false;
   private:
 };

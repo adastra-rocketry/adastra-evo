@@ -6,7 +6,7 @@ Sensors::Sensors() {
 
 void Sensors::Init() {
   if(DEBUG) Serial.println("BEGIN Sensors::Init()");
-  Wire1.setClock(1000000);
+  Wire1.setClock(10000);
   InitIMU();
   InitMPU6050();
   InitTemperatureAndHumidity();
@@ -34,13 +34,12 @@ void Sensors::InitMPU6050() {
   // Try to initialize!
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
-    while (1) {
-      delay(10);
-    }
+    backupIMUAvailable = false;
+  } else {
+    mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+    mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+    mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
   }
-  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
-  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
-  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 }
 
 void Sensors::InitTemperatureAndHumidity() {
@@ -58,13 +57,40 @@ void Sensors::Loop(SystemState &state) {
   // Update DataPoint
   state.CurrentDataPoint.State = state.VehicleState;
   state.CurrentDataPoint.Timestamp = millis();
-  state.CurrentDataPoint.Pressure = ReadPressure();
-  float humidity;
-  ReadTemperatureAndHumidity(state.CurrentDataPoint.Temperature, humidity);
-  ReadAcceleration(state.CurrentDataPoint.Acc_X, state.CurrentDataPoint.Acc_Y, state.CurrentDataPoint.Acc_Z);
-  ReadGyroscope(state.CurrentDataPoint.G_X, state.CurrentDataPoint.G_Y, state.CurrentDataPoint.G_Z);
-  ReadMagneticField(state.CurrentDataPoint.Mag_X, state.CurrentDataPoint.Mag_Y, state.CurrentDataPoint.Mag_Z);
-  ReadMPU6050(state.CurrentDataPoint.Back_Acc_X, state.CurrentDataPoint.Back_Acc_Y, state.CurrentDataPoint.Back_Acc_Z, state.CurrentDataPoint.Back_G_X, state.CurrentDataPoint.Back_G_Y, state.CurrentDataPoint.Back_G_Z, state.CurrentDataPoint.Back_Temperature);
+  switch(i) {
+    case 0:
+      state.CurrentDataPoint.Pressure = ReadPressure();
+      break;
+    case 1:
+      float humidity;
+      ReadTemperatureAndHumidity(state.CurrentDataPoint.Temperature, humidity);
+      break;
+    case 2:
+      ReadAcceleration(state.CurrentDataPoint.Acc_X, state.CurrentDataPoint.Acc_Y, state.CurrentDataPoint.Acc_Z);
+      ReadGyroscope(state.CurrentDataPoint.G_X, state.CurrentDataPoint.G_Y, state.CurrentDataPoint.G_Z);
+      ReadMagneticField(state.CurrentDataPoint.Mag_X, state.CurrentDataPoint.Mag_Y, state.CurrentDataPoint.Mag_Z);
+      break;
+  }
+  i++;
+  if(i > 2) {
+    state.SensorReadingsReady = true;
+    i = 0;
+  } else {
+    state.SensorReadingsReady = false;
+  }
+
+  if(backupIMUAvailable) {
+    ReadMPU6050(
+
+      state.CurrentDataPoint.Back_Acc_X, 
+      state.CurrentDataPoint.Back_Acc_Y, 
+      state.CurrentDataPoint.Back_Acc_Z, 
+      state.CurrentDataPoint.Back_G_X, 
+      state.CurrentDataPoint.Back_G_Y, 
+      state.CurrentDataPoint.Back_G_Z, 
+      state.CurrentDataPoint.Back_Temperature
+    );
+  }  
   digitalWrite(GREEN_LED, LOW);
   if(DEBUG) Serial.println("END Sensors::Loop()");
 }

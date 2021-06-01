@@ -14,6 +14,10 @@ struct DataPoint {
   float G_Y;
   float G_Z;
 
+  float Mag_X;
+  float Mag_Y;
+  float Mag_Z;
+
   float Back_Acc_X;
   float Back_Acc_Y;
   float Back_Acc_Z;
@@ -23,10 +27,6 @@ struct DataPoint {
   float Back_G_Z;
 
   float Back_Temperature;
-
-  float Mag_X;
-  float Mag_Y;
-  float Mag_Z;
 
   float Pitch;
   float Roll;
