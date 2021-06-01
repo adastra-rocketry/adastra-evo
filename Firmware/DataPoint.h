@@ -14,6 +14,16 @@ struct DataPoint {
   float G_Y;
   float G_Z;
 
+  float Back_Acc_X;
+  float Back_Acc_Y;
+  float Back_Acc_Z;
+
+  float Back_G_X;
+  float Back_G_Y;
+  float Back_G_Z;
+
+  float Back_Temperature;
+
   float Mag_X;
   float Mag_Y;
   float Mag_Z;

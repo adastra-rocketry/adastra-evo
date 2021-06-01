@@ -6,7 +6,9 @@ Sensors::Sensors() {
 
 void Sensors::Init() {
   if(DEBUG) Serial.println("BEGIN Sensors::Init()");
+  Wire1.setClock(1000000);
   InitIMU();
+  InitMPU6050();
   InitTemperatureAndHumidity();
   InitBarometer();
   if(DEBUG) Serial.println("END Sensors::Init()");
@@ -28,6 +30,19 @@ void Sensors::InitIMU() {
   }
 }
 
+void Sensors::InitMPU6050() {
+  // Try to initialize!
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
+  }
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+}
+
 void Sensors::InitTemperatureAndHumidity() {
   if (!hts.begin_I2C(0x5F, &Wire1, 0)) {
     if(DEBUG) Serial.println("Failed to init temperature sensor!");
@@ -39,19 +54,32 @@ void Sensors::InitTemperatureAndHumidity() {
 void Sensors::Loop(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN Sensors::Loop()");
   digitalWrite(GREEN_LED, HIGH);
-  float temperature, humidity;
-  ReadTemperatureAndHumidity(temperature, humidity);
-  float pressure = ReadPressure();
-  float acc_x, acc_y, acc_z;
-  ReadAcceleration(acc_x, acc_y, acc_z);
-  float g_x, g_y, g_z;
-  ReadGyroscope(g_x, g_y, g_z);
-  float m_x, m_y, m_z;
-  ReadMagneticField(m_x, m_y, m_z);
-  DataPoint newItem = {state.VehicleState, millis(), pressure, temperature, acc_x, acc_y, acc_z, g_x, g_y, g_z, m_x, m_y, m_z};
-  state.CurrentDataPoint = newItem;
+
+  // Update DataPoint
+  state.CurrentDataPoint.State = state.VehicleState;
+  state.CurrentDataPoint.Timestamp = millis();
+  state.CurrentDataPoint.Pressure = ReadPressure();
+  float humidity;
+  ReadTemperatureAndHumidity(state.CurrentDataPoint.Temperature, humidity);
+  ReadAcceleration(state.CurrentDataPoint.Acc_X, state.CurrentDataPoint.Acc_Y, state.CurrentDataPoint.Acc_Z);
+  ReadGyroscope(state.CurrentDataPoint.G_X, state.CurrentDataPoint.G_Y, state.CurrentDataPoint.G_Z);
+  ReadMagneticField(state.CurrentDataPoint.Mag_X, state.CurrentDataPoint.Mag_Y, state.CurrentDataPoint.Mag_Z);
+  ReadMPU6050(state.CurrentDataPoint.Back_Acc_X, state.CurrentDataPoint.Back_Acc_Y, state.CurrentDataPoint.Back_Acc_Z, state.CurrentDataPoint.Back_G_X, state.CurrentDataPoint.Back_G_Y, state.CurrentDataPoint.Back_G_Z, state.CurrentDataPoint.Back_Temperature);
   digitalWrite(GREEN_LED, LOW);
   if(DEBUG) Serial.println("END Sensors::Loop()");
+}
+
+void Sensors::ReadMPU6050(float &acc_x, float &acc_y, float &acc_z, float &g_x, float &g_y, float &g_z, float &temp) {
+  if(DEBUG) Serial.println("BEGIN Sensors::ReadMPU6050()");
+  mpu.getEvent(&mpu_a, &mpu_g, &mpu_temp);
+  acc_x = mpu_a.acceleration.x;
+  acc_y = mpu_a.acceleration.y;
+  acc_z = mpu_a.acceleration.z;
+  g_x = mpu_g.gyro.x;
+  g_y = mpu_g.gyro.y;
+  g_z = mpu_g.gyro.z;
+  temp = mpu_temp.temperature;
+  if(DEBUG) Serial.println("END Sensors::ReadMPU6050()");
 }
 
 void Sensors::ReadAcceleration(float &acc_x, float &acc_y, float &acc_z ) {
@@ -75,7 +103,7 @@ void Sensors::ReadGyroscope(float &g_x, float &g_y, float &g_z) {
 void Sensors::ReadMagneticField(float &m_x, float &m_y, float &m_z) {
   if(DEBUG) Serial.println("BEGIN Sensors::ReadMagneticField()");
   m_x = -999, m_y = -999, m_z = -999;
-  if (IMU.gyroscopeAvailable()) {
+  if (IMU.magneticFieldAvailable()) {
     IMU.readMagneticField(m_x, m_y, m_z);
   }
   if(DEBUG) Serial.println("END Sensors::ReadMagneticField()");
@@ -88,8 +116,6 @@ float Sensors::ReadPressure() {
 
 void Sensors::ReadTemperatureAndHumidity(float& temp, float &humidity) {
   if(DEBUG) Serial.println("BEGIN Sensors::ReadTemperatureAndHumidity()");
-  sensors_event_t temp_reading;
-  sensors_event_t humidity_reading;
   hts.getEvent(&temp_reading, &humidity_reading);
 
   temp = temp_reading.temperature;

@@ -6,6 +6,7 @@
 #include "Arduino.h"
 #include "FlightStateAnalyzer.h"
 #include "Watchdog.h"
+#include "DataLogger.h"
 #include "SettingsStore.h"
 
 #include <mbed.h>
@@ -18,6 +19,7 @@ BluetoothStack Ble;
 Sensors SensorReader;
 Calculation Calc;
 FlightStateAnalyzer Fla;
+DataLogger DL;
 Watchdog WD;
 
 unsigned long previousMillis = 0;
@@ -29,6 +31,7 @@ void setup() {
   State.Init();
   //SettingsStore.Init(State);
   SensorReader.Init();
+  DL.Init();
   Ble.Init();
   Calc.Init();
   Fla.Init();
@@ -44,10 +47,11 @@ void loop() {
   unsigned long currentMillis = millis();
   if(currentMillis - previousMillis >= SAVE_INTERVAL) {
     Ble.Loop(State);
-    SensorReader.Loop(State);
+    SensorReader.Loop(State);    
     Calc.Loop(State);
     Fla.Loop(State);
     Sound.Loop(State);
+    DL.Loop(State);
     WD.Loop(State);
     previousMillis = currentMillis;
   }

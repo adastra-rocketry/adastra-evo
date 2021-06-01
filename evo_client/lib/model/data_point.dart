@@ -15,6 +15,13 @@ class DataPoint {
     required this.gX,
     required this.gY,
     required this.gZ,
+    required this.backAccX,
+    required this.backAccY,
+    required this.backAccZ,
+    required this.backGX,
+    required this.backGY,
+    required this.backGZ,
+    required this.backTemperature,
     required this.magX,
     required this.magY,
     required this.magZ,
@@ -43,6 +50,13 @@ class DataPoint {
   double? magX;
   double? magY;
   double? magZ;
+  double? backAccX;
+  double? backAccY;
+  double? backAccZ;
+  double? backGX;
+  double? backGY;
+  double? backGZ;
+  double? backTemperature;
   double? pitch;
   double? roll;
   double? yaw;
@@ -70,6 +84,15 @@ class DataPoint {
       magX: _readBuffer(data),
       magY: _readBuffer(data),
       magZ: _readBuffer(data),
+
+      backAccX: _readBuffer(data),
+      backAccY: _readBuffer(data),
+      backAccZ: _readBuffer(data),
+      backGX: _readBuffer(data),
+      backGY: _readBuffer(data),
+      backGZ: _readBuffer(data),
+
+      backTemperature: _readBuffer(data),
 
       pitch: _readBuffer(data),
       roll: _readBuffer(data),
@@ -143,6 +166,16 @@ class DataPoint {
     map["Compass X"] = gX == null ? "" : gX.toString();
     map["Compass Y"] = gY == null ? "" : gY.toString();
     map["Compass Z"] = gZ == null ? "" : gZ.toString();
+
+
+    map["Backup Acceleration X"] = backAccX == null ? "" : backAccX.toString();
+    map["Backup Acceleration Y"] = backAccY == null ? "" : backAccY.toString();
+    map["Backup Acceleration Z"] = backAccZ == null ? "" : backAccZ.toString();
+    map["Backup Gyro X"] = backGX == null ? "" : backGX.toString();
+    map["Backup Gyro Y"] = backGY == null ? "" : backGY.toString();
+    map["Backup Gyro Z"] = backGZ == null ? "" : backGZ.toString();
+
+    map["Backup Temperature"] = backTemperature == null ? "" : backTemperature.toString();
 
     map["Pressure Delta"] = pressureDelta == null ? "" : pressureDelta.toString();
     map["Kalman Pressure Delta"] = kalmanPressureDelta == null ? "" : kalmanPressureDelta.toString();
