@@ -36,7 +36,5 @@ class Sensors
     void ReadMagneticField(float &m_x, float &m_y, float &m_z);   
     void ReadMPU6050(float &acc_x, float &acc_y, float &acc_z, float &g_x, float &g_y, float &g_z, float &temp);
 
-    sensors_event_t mpu_a, mpu_g, mpu_temp;
-    sensors_event_t temp_reading;
-    sensors_event_t humidity_reading;
+    sensors_event_t a, m, g, temp, hum;
 };
