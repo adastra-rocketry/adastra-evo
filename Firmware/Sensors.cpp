@@ -146,7 +146,9 @@ void Sensors::ReadGyroscope(float &g_x, float &g_y, float &g_z) {
   if(DEBUG) Serial.println("BEGIN Sensors::ReadGyroscope()");
   g_x = -999, g_y = -999, g_z = -999;
   if (IMU.gyroscopeAvailable()) {
-    IMU.readGyroscope(g_x,g_y,g_z);
+    IMU.readGyroscope(g_y, g_x,g_z);   // X and Y seem to be invert and swapped
+    g_x *= -1;
+    g_y *= -1;
   }
   if(DEBUG) Serial.println("END Sensors::ReadGyroscope()");
 }

@@ -57,9 +57,9 @@ class DataPoint {
   double? backGY;
   double? backGZ;
   double? backTemperature;
-  double? pitch;
-  double? roll;
-  double? yaw;
+  int? pitch;
+  int? roll;
+  int? yaw;
   double? pressureDelta;
   double? kalmanPressureDelta;
   double? altitude;
@@ -72,7 +72,7 @@ class DataPoint {
     _offset = 0;
     return new DataPoint(
       state: _readBuffer(data),
-      timeStamp: _readBuffer(data),
+      timeStamp: _readBuffer(data, signed: false),
       pressure: _readBuffer(data),
       temperature: _readBuffer(data),
       accX: _readBuffer(data),
@@ -94,7 +94,7 @@ class DataPoint {
 
       backTemperature: _readBuffer(data),
 
-      pitch: _readBuffer(data),
+      pitch: _readBuffer(data, debug: true),
       roll: _readBuffer(data),
       yaw: _readBuffer(data),
 
@@ -107,9 +107,8 @@ class DataPoint {
     );
   }
 
-  static T? _readBuffer<T>(ByteData b, {int size=4, bool signed=true}) {
+  static T? _readBuffer<T>(ByteData b, {int size=4, bool signed=true, bool debug=false}) {
     T? value;
-    print(b);
 
     switch (T) {
       case int:
@@ -133,6 +132,9 @@ class DataPoint {
         }
         break;
       case double:
+        if(debug) {
+          print(b.buffer.asInt8List(_offset, 4));
+        }
         value = b.getFloat32(_offset, Endian.little) as T;
         break;
     }

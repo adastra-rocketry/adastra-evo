@@ -28,9 +28,9 @@ struct DataPoint {
 
   float Back_Temperature;
 
-  float Pitch;
-  float Roll;
-  float Yaw;
+  int Pitch;
+  int Roll;
+  int Yaw;
   
   float PressureDelta;
   float KalmanPressureDelta;

@@ -22,7 +22,6 @@ class Sensors
   private:
     void StartSensors();
     void StopSensors();
-    unsigned long LastSensorReadingStart = 0;
     int i = 0;
     bool BackupIMUAvailable = true;
     bool Wire1Stopped = false;

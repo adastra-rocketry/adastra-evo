@@ -9,6 +9,8 @@
 #define YELLOW_LED A1
 #define RED_LED A0
 
+#define BUTTON_PIN 5
+
 struct SettingsDto {
     float LaunchAltitude = 145.0f;
     float PressureNN = 1027.6f;

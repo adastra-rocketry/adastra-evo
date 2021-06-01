@@ -8,6 +8,7 @@
 #include "Watchdog.h"
 #include "DataLogger.h"
 #include "SettingsStore.h"
+#include "Button.h"
 
 #include <mbed.h>
 #include <mbed_mem_trace.h>
@@ -21,6 +22,7 @@ Calculation Calc;
 FlightStateAnalyzer Fla;
 DataLogger DL;
 Watchdog WD;
+Button Button;
 
 unsigned long previousMillis = 0;
 unsigned long previousBLEUpdateMillis = 0;
@@ -31,6 +33,7 @@ void setup() {
   Wire1.begin();
   InitLEDs();
   State.Init();
+  Button.Init();
   //SettingsStore.Init(State);
   SensorReader.Init();
   DL.Init();
@@ -51,6 +54,7 @@ void loop() {
     Ble.Loop(State);
     SensorReader.Loop(State);    
     Calc.Loop(State);
+    Button.Loop(State);
     Fla.Loop(State);
     Sound.Loop(State);
     DL.Loop(State);

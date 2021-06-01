@@ -9,6 +9,7 @@ enum VehicleStateType {
   Ascending = 2,
   Descending = 3,
   Landed = 4,
+  Calibrating = 100,
 
-  Error = 666
+  Error = -127
 };
