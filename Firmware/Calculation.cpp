@@ -23,7 +23,7 @@ void Calculation::Loop(SystemState &state) {
       }
       break;
     
-    case VehicleStateType::Calibrating,
+    case VehicleStateType::Calibrating:
     case VehicleStateType::Error:
     default:
       break;
