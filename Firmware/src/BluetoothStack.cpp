@@ -1,10 +1,6 @@
-#include "Arduino.h"
-#include <ArduinoBLE.h>
 #include "BluetoothStack.h"
-#include "Settings.h"
-#include "VehicleStateType.h"
 
-BluetoothStack::BluetoothStack() {
+BluetoothStack::BluetoothStack(SystemState &state) : State{ state } {
   
 }
 
@@ -25,6 +21,7 @@ void BluetoothStack::Init() {
   BLE.setAdvertisedService(bleMainService); // add the service UUID
   bleMainService.addCharacteristic(currentDataPointServiceChar);
   bleMainService.addCharacteristic(commandServiceChar);
+  bleMainService.addCharacteristic(pyroChannelServiceChar);
   BLE.addService(bleMainService);
   
   /* Start advertising BLE.  It will start continuously transmitting BLE
@@ -37,22 +34,22 @@ void BluetoothStack::Init() {
   if(DEBUG) Serial.println("END BluetoothStack::Init()");
 }
 
-void BluetoothStack::Loop(SystemState &state) {
+void BluetoothStack::Loop() {
   if(DEBUG) Serial.println("BEGIN BluetoothStack::Loop()");
   BLE.poll();
   BLE.advertise();
   if(DEBUG) Serial.println("END BluetoothStack::Loop()");
 }
 
-void BluetoothStack::Update(SystemState &state) {
+void BluetoothStack::Update() {
   if(DEBUG) Serial.println("BEGIN BluetoothStack::Update()");
   
   digitalWrite(YELLOW_LED, HIGH);
   BLEDevice central = BLE.central();
   if (central) {
     if (central.connected()) {
-      UpdateCharacteristics(state);
-      ProcessCommand(state);
+      UpdateCharacteristics(State);
+      ProcessCommand(State);
     }
   }
   digitalWrite(YELLOW_LED, LOW);
@@ -61,9 +58,13 @@ void BluetoothStack::Update(SystemState &state) {
 
 void BluetoothStack::UpdateCharacteristics(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN BluetoothStack::UpdateCharacteristics()");
-  unsigned char b[sizeof(state.CurrentDataPoint)];
-  memcpy(b, &state.CurrentDataPoint, sizeof(state.CurrentDataPoint));
-  currentDataPointServiceChar.writeValue(b, sizeof(b)); // and publish it via BT
+  unsigned char bDP[sizeof(State.CurrentDataPoint)];
+  memcpy(bDP, &State.CurrentDataPoint, sizeof(State.CurrentDataPoint));
+  currentDataPointServiceChar.writeValue(bDP, sizeof(bDP)); // and publish it via BT
+
+  unsigned char bPC[sizeof(State.PyroChannel)];
+  memcpy(bPC, &State.PyroChannel, sizeof(State.PyroChannel));
+  pyroChannelServiceChar.writeValue(bPC, sizeof(bPC)); // and publish it via BT
   if(DEBUG) Serial.println("END BluetoothStack::UpdateCharacteristics()");
 }
 
@@ -87,16 +88,16 @@ void BluetoothStack::ProcessCommand(SystemState& state) {
 
     switch(command.Type) {
       case 'r':
-        state.StartNewRecording();
+        State.StartNewRecording();
         break;
       case 'l':
-        state.UpdateFlightState(VehicleStateType::LaunchIdle);
+        State.UpdateFlightState(VehicleStateType::LaunchIdle);
         break;
       case 's':
-        state.Settings.LaunchAltitude = command.Arg1;
-        state.Settings.PressureNN = command.Arg2;
-        strcpy(state.Settings.Name, command.Arg3);
-        state.StartNewRecording();
+        State.Settings.LaunchAltitude = command.Arg1;
+        State.Settings.PressureNN = command.Arg2;
+        strcpy(State.Settings.Name, command.Arg3);
+        State.StartNewRecording();
         break;
       default:
         if(DEBUG) {

@@ -2,14 +2,16 @@
   Watchdog.h
 */
 #pragma once
-
-#include "SystemState.h"
+#include "SystemState\SystemState.h"
+#include "Arduino.h"
+#include "SystemState\SystemState.h"
 
 class Watchdog
 {
   public:
-    Watchdog();
+    Watchdog(SystemState &state);
     void Init();
-    void Loop(SystemState &state);
+    void Loop();
   private:
+    SystemState &State;
 };

@@ -1,22 +1,17 @@
-/*
-  DataLogger.h
-*/
 #pragma once
+
+#include "Settings\Settings.h"
 
 #include "Arduino.h"
 #include "SystemState\SystemState.h"
-#include "DataPoint.h"
-#include <SPI.h>
 
-#define CSPIN 8
-
-class DataLogger
+class PyroChannels
 {
   public:
-    DataLogger(SystemState &state);
+    PyroChannels(SystemState &state);
     void Init();
     void Loop();
   private:
     SystemState &State;
-    void EraseAll();
+    void CheckContinuity();
 };

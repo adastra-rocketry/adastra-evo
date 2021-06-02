@@ -1,6 +1,6 @@
 #include "DataLogger.h"
 
-DataLogger::DataLogger() {
+DataLogger::DataLogger(SystemState &state) : State{ state } {
 
 }
 
@@ -8,7 +8,7 @@ void DataLogger::Init() {
 
 }
 
-void DataLogger::Loop(SystemState &state) {
+void DataLogger::Loop() {
   
 }
 

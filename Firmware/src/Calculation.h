@@ -4,18 +4,21 @@
 #pragma once
 
 #include "Arduino.h"
-#include "SystemState.h"
+#include "SystemState\SystemState.h"
 #include "DataPoint.h"
 #include "SensorFusion.h" //SF
+#include "SystemState\VehicleStateType.h"
+
 
 class Calculation
 {
   public:
-    Calculation();
+    Calculation(SystemState &state);
     void Init();
-    void Loop(SystemState &state);
+    void Loop();
   private:
+    SystemState &State;
     float deltat;
     SF fusion;
-    void CalcPitchRollYaw(DataPoint &point);
+    void CalcPitchRollYaw();
 };

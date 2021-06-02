@@ -1,6 +1,6 @@
 #include "Button.h"
 
-Button::Button() {
+Button::Button(SystemState &state) : State{ state } {
   
 }
 
@@ -8,10 +8,10 @@ void Button::Init() {
   pinMode(BUTTON_PIN, INPUT);
 }
 
-void Button::Loop(SystemState &state) {
+void Button::Loop() {
   int buttonState = digitalRead(BUTTON_PIN);
   if (buttonState == HIGH) {
-    state.UpdateFlightState(VehicleStateType::Calibrating);
+    State.UpdateFlightState(VehicleStateType::Calibrating);
   }
 
 }

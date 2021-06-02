@@ -1,13 +1,13 @@
 #include "Sensors.h"
 
-Sensors::Sensors() {
-  
+Sensors::Sensors(SystemState &state) : State{ state } {
 }
 
 void Sensors::Init() {
   if(DEBUG) Serial.println("BEGIN Sensors::Init()");
   Wire1.setClock(400000);
-  StartSensors();  
+  StartSensors();
+  Wire.begin();
   InitMPU6050(); // not affected by I2C bug
 
   if(DEBUG) Serial.println("END Sensors::Init()");
@@ -15,6 +15,7 @@ void Sensors::Init() {
 
 void Sensors::StartSensors() {
   Serial.println("(re)starting sensors");
+  digitalWrite(RED_LED, HIGH);
   digitalWrite(PIN_ENABLE_SENSORS_3V3, HIGH);
   digitalWrite(PIN_ENABLE_I2C_PULLUP, HIGH);
   Wire1.begin();
@@ -22,6 +23,7 @@ void Sensors::StartSensors() {
   InitTemperatureAndHumidity();
   InitBarometer();
   Wire1Stopped = false;
+  digitalWrite(RED_LED, LOW);
 }
 
 void Sensors::StopSensors() {
@@ -66,47 +68,48 @@ void Sensors::InitTemperatureAndHumidity() {
   hts.setDataRate(HTS221_RATE_12_5_HZ);
 }
 
-void Sensors::Loop(SystemState &state) {
+void Sensors::Loop() {
   if(DEBUG) Serial.println("BEGIN Sensors::Loop()");
-  if(Wire1Stopped) StartSensors();
   digitalWrite(GREEN_LED, HIGH);
+  if(Wire1Stopped) StartSensors();
 
-  // Update DataPoint
-  state.CurrentDataPoint.State = state.VehicleState;
-  state.CurrentDataPoint.Timestamp = millis();
   WatchDogTimer = millis();
 
+  // Update DataPoint
+  State.CurrentDataPoint.State = State.VehicleState;
+  State.CurrentDataPoint.Timestamp = millis();  
+
   //read pressure
-  state.CurrentDataPoint.Pressure = ReadPressure();
+  State.CurrentDataPoint.Pressure = ReadPressure();
   if(!CheckWatchDog()) return;
 
   // read temperature only every 10 reads
   if(loopDivider % 10 == 0) {
     float humidity;
-    ReadTemperatureAndHumidity(state.CurrentDataPoint.Temperature, humidity);
+    ReadTemperatureAndHumidity(State.CurrentDataPoint.Temperature, humidity);
     if(!CheckWatchDog()) return;
   }
   loopDivider++;
 
   // read IMU
-  ReadAcceleration(state.CurrentDataPoint.Acc_X, state.CurrentDataPoint.Acc_Y, state.CurrentDataPoint.Acc_Z);
+  ReadAcceleration(State.CurrentDataPoint.Acc_X, State.CurrentDataPoint.Acc_Y, State.CurrentDataPoint.Acc_Z);
   if(!CheckWatchDog()) return;
-  ReadGyroscope(state.CurrentDataPoint.G_X, state.CurrentDataPoint.G_Y, state.CurrentDataPoint.G_Z);
+  ReadGyroscope(State.CurrentDataPoint.G_X, State.CurrentDataPoint.G_Y, State.CurrentDataPoint.G_Z);
   if(!CheckWatchDog()) return;
-  ReadMagneticField(state.CurrentDataPoint.Mag_X, state.CurrentDataPoint.Mag_Y, state.CurrentDataPoint.Mag_Z);
+  ReadMagneticField(State.CurrentDataPoint.Mag_X, State.CurrentDataPoint.Mag_Y, State.CurrentDataPoint.Mag_Z);
   if(!CheckWatchDog()) return;
 
   // read backup IMU if available
   if(BackupIMUAvailable) {
     ReadMPU6050(
 
-      state.CurrentDataPoint.Back_Acc_X, 
-      state.CurrentDataPoint.Back_Acc_Y, 
-      state.CurrentDataPoint.Back_Acc_Z, 
-      state.CurrentDataPoint.Back_G_X, 
-      state.CurrentDataPoint.Back_G_Y, 
-      state.CurrentDataPoint.Back_G_Z, 
-      state.CurrentDataPoint.Back_Temperature
+      State.CurrentDataPoint.Back_Acc_X, 
+      State.CurrentDataPoint.Back_Acc_Y, 
+      State.CurrentDataPoint.Back_Acc_Z, 
+      State.CurrentDataPoint.Back_G_X, 
+      State.CurrentDataPoint.Back_G_Y, 
+      State.CurrentDataPoint.Back_G_Z, 
+      State.CurrentDataPoint.Back_Temperature
     );
   }
   digitalWrite(GREEN_LED, LOW);

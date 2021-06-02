@@ -4,8 +4,8 @@
 #pragma once
 
 #include "Arduino.h"
-#include "SystemState.h"
-#include "Settings.h"
+#include "SystemState\SystemState.h"
+#include "Settings\Settings.h"
 #include <Adafruit_HTS221.h>
 #include <Wire.h>
 #include "Adafruit_LPS35HW.h"
@@ -16,10 +16,11 @@
 class Sensors
 {
   public:
-    Sensors();
+    Sensors(SystemState &state);
     void Init();
-    void Loop(SystemState &state);
+    void Loop();
   private:
+    SystemState &State;
     void StartSensors();
     void StopSensors();
     bool BackupIMUAvailable = true;

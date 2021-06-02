@@ -1,13 +1,15 @@
 #pragma once
 
-#include "SystemState.h"
+#include "SystemState\SystemState.h"
+#include "Settings\Settings.h"
+#include "Arduino.h"
 
 class SoundModule
 {
   public:
-    SoundModule();
-    void Loop(SystemState &state);
+    SoundModule(SystemState &state);
+    void Loop();
   private:
+    SystemState &State;
     long lastTimestamp;
-    void LoopError(SystemState &state);
 };

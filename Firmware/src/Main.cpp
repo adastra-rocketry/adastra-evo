@@ -1,5 +1,5 @@
 #include "SoundModule.h"
-#include "SystemState.h"
+#include "SystemState\SystemState.h"
 #include "BluetoothStack.h"
 #include "Sensors.h"
 #include "Calculation.h"
@@ -7,44 +7,43 @@
 #include "FlightStateAnalyzer.h"
 #include "Watchdog.h"
 #include "DataLogger.h"
-#include "SettingsStore.h"
+#include "Settings\SettingsStore.h"
 #include "Button.h"
+#include "PyroChannels.h"
 
 #include <mbed.h>
 #include <mbed_mem_trace.h>
 
-SoundModule Sound{};
 SystemState State;
-SettingsStore SettingsStore;
-BluetoothStack Ble;
-Sensors SensorReader;
-Calculation Calc;
-FlightStateAnalyzer Fla;
-DataLogger DL;
-Watchdog WD;
-Button Button;
+SoundModule Sound{State};
+SettingsStore Settings{State};
+BluetoothStack Ble{State};
+Sensors SensorReader{State};
+Calculation Calc{State};
+FlightStateAnalyzer Fla{State};
+DataLogger DL{State};
+Watchdog WD{State};
+Button Btn{State};
+PyroChannels PC{State};
 
 unsigned long previousMillis = 0;
 unsigned long previousBLEUpdateMillis = 0;
 char printEvent[100];
 
-void InitLEDs();
 void SensorLoop();
 
 void setup() {
   Serial.begin(115200);
-  Wire.begin();
-  Wire1.begin();
-  InitLEDs();
   State.Init();
-  Button.Init();
-  //SettingsStore.Init(State);
+  Btn.Init();
+  //Settings.Init(State);
   SensorReader.Init();
   DL.Init();
   Ble.Init();
   Calc.Init();
   Fla.Init();
   WD.Init();
+  PC.Init();
   if(DEBUG) Serial.println("END Setup()");
 }
 
@@ -55,32 +54,24 @@ void loop() {
 
   unsigned long currentMillis = millis();
   if(currentMillis - previousMillis >= SAVE_INTERVAL) {
-    Ble.Loop(State);
-    SensorReader.Loop(State);    
-    Calc.Loop(State);
-    Button.Loop(State);
-    Fla.Loop(State);
-    Sound.Loop(State);
-    DL.Loop(State);
-    WD.Loop(State);
+    Ble.Loop();
+    SensorReader.Loop();    
+    Calc.Loop();
+    Btn.Loop();
+    Fla.Loop();
+    PC.Loop();
+    Sound.Loop();
+    DL.Loop();
+    WD.Loop();    
     previousMillis = currentMillis;
   }
   if(currentMillis - previousBLEUpdateMillis >= BLE_UPDATE_INTERVAL) {
-    Ble.Update(State);
+    Ble.Update();
     previousBLEUpdateMillis = currentMillis;
     //print_memory_info(printEvent, sizeof(printEvent));
   }
   
   if(DEBUG) Serial.println("END Loop()");
-}
-
-void InitLEDs() {
-  pinMode(GREEN_LED, OUTPUT);
-  digitalWrite(GREEN_LED, LOW);
-  pinMode(RED_LED, OUTPUT);
-  digitalWrite(RED_LED, LOW);
-  pinMode(YELLOW_LED, OUTPUT);
-  digitalWrite(YELLOW_LED, LOW);
 }
 
 void print_memory_info(char* printEvent, int iSize) {

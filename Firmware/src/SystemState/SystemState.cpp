@@ -1,14 +1,11 @@
-#include "SystemState.h"
-#include "VehicleStateType.h"
-#include "Settings.h"
 #include <Arduino.h>
+#include "SystemState.h"
 
 SystemState::SystemState() {
 
 }
 
 void SystemState::Init() {
-  //ErrorCode = 23;
   VehicleState = VehicleStateType::Idle;
 }
 

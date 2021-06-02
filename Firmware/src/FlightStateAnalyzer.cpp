@@ -1,8 +1,6 @@
 #include "FlightStateAnalyzer.h"
-#include "Settings.h"
-#include "Arduino.h"
 
-FlightStateAnalyzer::FlightStateAnalyzer() {
+FlightStateAnalyzer::FlightStateAnalyzer(SystemState &State) : State{ State } {
 
 }
 
@@ -10,16 +8,16 @@ void FlightStateAnalyzer::Init() {
 
 }
 
-void FlightStateAnalyzer::Loop(SystemState &state) {
+void FlightStateAnalyzer::Loop() {
   if(DEBUG) Serial.println("BEGIN FlightStateAnalyzer::Loop()");
-  if(state.VehicleState == VehicleStateType::LaunchIdle && state.CurrentDataPoint.Acc_X > 1) {
-    state.UpdateFlightState(VehicleStateType::Ascending);
+  if(State.VehicleState == VehicleStateType::LaunchIdle && State.CurrentDataPoint.Acc_X > 1) {
+    State.UpdateFlightState(VehicleStateType::Ascending);
   }
-  else if(state.VehicleState == VehicleStateType::Ascending && state.CurrentDataPoint.KalmanAltitude < state.HeighestAltitude - 2) {
-    state.UpdateFlightState(VehicleStateType::Descending);
+  else if(State.VehicleState == VehicleStateType::Ascending && State.CurrentDataPoint.KalmanAltitude < State.HeighestAltitude - 2) {
+    State.UpdateFlightState(VehicleStateType::Descending);
   }
-  else if(state.VehicleState == VehicleStateType::Descending && state.CurrentDataPoint.KalmanAltitude < state.Settings.LaunchAltitude + 5) {
-    state.UpdateFlightState(VehicleStateType::Landed);
+  else if(State.VehicleState == VehicleStateType::Descending && State.CurrentDataPoint.KalmanAltitude < State.Settings.LaunchAltitude + 5) {
+    State.UpdateFlightState(VehicleStateType::Landed);
   }
   if(DEBUG) Serial.println("END FlightStateAnalyzer::Loop()");
 }

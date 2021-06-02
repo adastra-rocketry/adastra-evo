@@ -1,11 +1,13 @@
 #pragma once
-#include "SystemState.h"
+#include "SystemState\SystemState.h"
+#include "Settings\Settings.h"
+#include "Arduino.h"
 
 class FlightStateAnalyzer {
   public:
-    FlightStateAnalyzer();
+    FlightStateAnalyzer(SystemState &state);
     void Init();
-    void Loop(SystemState &state);
+    void Loop();
   private:
-
+    SystemState &State;
 };
