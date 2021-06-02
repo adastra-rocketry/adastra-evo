@@ -15,6 +15,13 @@ class DataPoint {
     required this.gX,
     required this.gY,
     required this.gZ,
+    required this.backAccX,
+    required this.backAccY,
+    required this.backAccZ,
+    required this.backGX,
+    required this.backGY,
+    required this.backGZ,
+    required this.backTemperature,
     required this.magX,
     required this.magY,
     required this.magZ,
@@ -43,9 +50,16 @@ class DataPoint {
   double? magX;
   double? magY;
   double? magZ;
-  double? pitch;
-  double? roll;
-  double? yaw;
+  double? backAccX;
+  double? backAccY;
+  double? backAccZ;
+  double? backGX;
+  double? backGY;
+  double? backGZ;
+  double? backTemperature;
+  int? pitch;
+  int? roll;
+  int? yaw;
   double? pressureDelta;
   double? kalmanPressureDelta;
   double? altitude;
@@ -58,7 +72,7 @@ class DataPoint {
     _offset = 0;
     return new DataPoint(
       state: _readBuffer(data),
-      timeStamp: _readBuffer(data),
+      timeStamp: _readBuffer(data, signed: false),
       pressure: _readBuffer(data),
       temperature: _readBuffer(data),
       accX: _readBuffer(data),
@@ -71,7 +85,16 @@ class DataPoint {
       magY: _readBuffer(data),
       magZ: _readBuffer(data),
 
-      pitch: _readBuffer(data),
+      backAccX: _readBuffer(data),
+      backAccY: _readBuffer(data),
+      backAccZ: _readBuffer(data),
+      backGX: _readBuffer(data),
+      backGY: _readBuffer(data),
+      backGZ: _readBuffer(data),
+
+      backTemperature: _readBuffer(data),
+
+      pitch: _readBuffer(data, debug: true),
       roll: _readBuffer(data),
       yaw: _readBuffer(data),
 
@@ -84,9 +107,8 @@ class DataPoint {
     );
   }
 
-  static T? _readBuffer<T>(ByteData b, {int size=4, bool signed=true}) {
+  static T? _readBuffer<T>(ByteData b, {int size=4, bool signed=true, bool debug=false}) {
     T? value;
-    print(b);
 
     switch (T) {
       case int:
@@ -110,6 +132,9 @@ class DataPoint {
         }
         break;
       case double:
+        if(debug) {
+          print(b.buffer.asInt8List(_offset, 4));
+        }
         value = b.getFloat32(_offset, Endian.little) as T;
         break;
     }
@@ -143,6 +168,16 @@ class DataPoint {
     map["Compass X"] = gX == null ? "" : gX.toString();
     map["Compass Y"] = gY == null ? "" : gY.toString();
     map["Compass Z"] = gZ == null ? "" : gZ.toString();
+
+
+    map["Backup Acceleration X"] = backAccX == null ? "" : backAccX.toString();
+    map["Backup Acceleration Y"] = backAccY == null ? "" : backAccY.toString();
+    map["Backup Acceleration Z"] = backAccZ == null ? "" : backAccZ.toString();
+    map["Backup Gyro X"] = backGX == null ? "" : backGX.toString();
+    map["Backup Gyro Y"] = backGY == null ? "" : backGY.toString();
+    map["Backup Gyro Z"] = backGZ == null ? "" : backGZ.toString();
+
+    map["Backup Temperature"] = backTemperature == null ? "" : backTemperature.toString();
 
     map["Pressure Delta"] = pressureDelta == null ? "" : pressureDelta.toString();
     map["Kalman Pressure Delta"] = kalmanPressureDelta == null ? "" : kalmanPressureDelta.toString();

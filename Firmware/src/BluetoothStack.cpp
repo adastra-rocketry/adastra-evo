@@ -1,23 +1,6 @@
-#include "Arduino.h"
-#include <ArduinoBLE.h>
 #include "BluetoothStack.h"
-#include "Settings.h"
-#include "VehicleStateType.h"
 
-#define RSSI_REASONABLE_SIGNAL -80 // A reasonable RSSI signal strength
-
-void blePeripheralConnectHandler(BLEDevice central) {
-  Serial.println("Connected event, central: ");
-  Serial.println(central.address());
-}
-
-void blePeripheralDisconnectHandler(BLEDevice central) {
-  Serial.println("Disconnected event, central: ");
-  Serial.println(central.address());
-}
-
-
-BluetoothStack::BluetoothStack() {
+BluetoothStack::BluetoothStack(SystemState &state) : State{ state } {
   
 }
 
@@ -38,12 +21,8 @@ void BluetoothStack::Init() {
   BLE.setAdvertisedService(bleMainService); // add the service UUID
   bleMainService.addCharacteristic(currentDataPointServiceChar);
   bleMainService.addCharacteristic(commandServiceChar);
-  bleMainService.addCharacteristic(settingsServiceChar);
-  BLE.setEventHandler(BLEConnected, blePeripheralConnectHandler);
-  BLE.setEventHandler(BLEDisconnected, blePeripheralDisconnectHandler);
+  bleMainService.addCharacteristic(pyroChannelServiceChar);
   BLE.addService(bleMainService);
-  BLE.setConnectable(true);
-
   
   /* Start advertising BLE.  It will start continuously transmitting BLE
      advertising packets and will be visible to remote BLE central devices
@@ -55,52 +34,41 @@ void BluetoothStack::Init() {
   if(DEBUG) Serial.println("END BluetoothStack::Init()");
 }
 
-
-
-void BluetoothStack::Loop(SystemState &state) {
+void BluetoothStack::Loop() {
   if(DEBUG) Serial.println("BEGIN BluetoothStack::Loop()");
   BLE.poll();
   BLE.advertise();
-  BLEDevice central = BLE.central();
-  if (central) {
-    if (central.connected()) {
-      // Check for reasonable RSSI signal strength.
-      if (central.rssi() >= RSSI_REASONABLE_SIGNAL) {
-        UpdateCharacteristics(state);  
-
-
-        ProcessCommand(state);
-      } else {
-        // Until the defect is fixed, we force disconnection
-        // of the central device.
-        if (!central.disconnect()) {
-          central.disconnect();          
-        }                
-      }
-
-    }
-  }
   if(DEBUG) Serial.println("END BluetoothStack::Loop()");
 }
 
+void BluetoothStack::Update() {
+  if(DEBUG) Serial.println("BEGIN BluetoothStack::Update()");
+  
+  State.Leds.setYellowLED(HIGH);
+  BLEDevice central = BLE.central();
+  if (central) {
+    if (central.connected()) {
+      UpdateCharacteristics(State);
+      ProcessCommand(State);
+    }
+  }
+  State.Leds.setYellowLED(LOW);
+  if(DEBUG) Serial.println("END BluetoothStack::Update()");
+}
 
 void BluetoothStack::UpdateCharacteristics(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN BluetoothStack::UpdateCharacteristics()");
-  long currentMillis = millis();
-  // if 200ms have passed
-  if(currentMillis - previousMillis >= BLE_UPDATE_INTERVAL) {
-    if(DEBUG) Serial.println("Update currentDataPointServiceChar");
-    unsigned char b[sizeof(state.CurrentDataPoint)];
-    memcpy(b, &state.CurrentDataPoint, sizeof(state.CurrentDataPoint));
-    currentDataPointServiceChar.writeValue(b, sizeof(b)); // and publish it via BT
+  unsigned char b[sizeof(state.CurrentDataPoint)];
+  memcpy(b, &state.CurrentDataPoint, sizeof(state.CurrentDataPoint));
+  currentDataPointServiceChar.writeValue(b, sizeof(b)); // and publish it via BT
 
+	unsigned char bPC[sizeof(State.PyroChannel)];
+  memcpy(bPC, &State.PyroChannel, sizeof(State.PyroChannel));
+  pyroChannelServiceChar.writeValue(bPC, sizeof(bPC)); // and publish it via BT
 
-    unsigned char bs[sizeof(state.Settings)];
-    memcpy(bs, &state.Settings, sizeof(state.Settings));
-    settingsServiceChar.writeValue(bs, sizeof(bs)); // and publish it via BT
-    
-    previousMillis = currentMillis;
-  }
+  unsigned char bs[sizeof(state.Settings)];
+  memcpy(bs, &state.Settings, sizeof(state.Settings));
+  settingsServiceChar.writeValue(bs, sizeof(bs)); // and publish it via BT
   if(DEBUG) Serial.println("END BluetoothStack::UpdateCharacteristics()");
 }
 
@@ -124,16 +92,16 @@ void BluetoothStack::ProcessCommand(SystemState& state) {
 
     switch(command.Type) {
       case 'r':
-        state.StartNewRecording();
+        State.StartNewRecording();
         break;
       case 'l':
-        state.VehicleState = VehicleStateType::LaunchIdle;
+        State.UpdateFlightState(VehicleStateType::LaunchIdle);
         break;
       case 's':
-        state.Settings.LaunchAltitude = command.Arg1;
-        state.Settings.PressureNN = command.Arg2;
-        strcpy(state.Settings.Name, command.Arg3);
-        state.StartNewRecording();
+        State.Settings.LaunchAltitude = command.Arg1;
+        State.Settings.PressureNN = command.Arg2;
+        strcpy(State.Settings.Name, command.Arg3);
+        State.StartNewRecording();
         break;
       default:
         if(DEBUG) {

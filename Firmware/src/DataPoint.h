@@ -1,5 +1,5 @@
 #pragma once
-#include "VehicleStateType.h"
+#include "SystemState\VehicleStateType.h"
 
 struct DataPoint {
   VehicleStateType State;
@@ -18,9 +18,19 @@ struct DataPoint {
   float Mag_Y;
   float Mag_Z;
 
-  float Pitch;
-  float Roll;
-  float Yaw;
+  float Back_Acc_X;
+  float Back_Acc_Y;
+  float Back_Acc_Z;
+
+  float Back_G_X;
+  float Back_G_Y;
+  float Back_G_Z;
+
+  float Back_Temperature;
+
+  int Pitch;
+  int Roll;
+  int Yaw;
   
   float PressureDelta;
   float KalmanPressureDelta;

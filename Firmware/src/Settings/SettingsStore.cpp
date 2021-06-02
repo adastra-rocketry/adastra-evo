@@ -1,17 +1,16 @@
 #include "SettingsStore.h"
-#include "Settings.h"
-#include "SystemState.h"
 
-SettingsStore::SettingsStore() {
+
+SettingsStore::SettingsStore(SystemState &state) : State{ state } {
 
 }
 
-void SettingsStore::Init(SystemState &state) {
-  ReadFromEEPROM(state.Settings);
+void SettingsStore::Init() {
+  ReadFromEEPROM(State.Settings);
 }
 
 void SettingsStore::ReadFromEEPROM(SettingsDto &settings) {
-  uint8_t data[sizeof(SettingsDto)];
+  uint8_t data[sizeof(settings)];
   NVRAM.read_block(data, 0, sizeof(settings));
   memcpy(data, &settings, sizeof(settings));
 }

@@ -1,73 +1,32 @@
-# This is the name of the workflow, visible on GitHub UI.
-name: test
- 
-# Here we tell GitHub to run the workflow when a commit
-# is pushed or a Pull Request is opened.
-on: [push, pull_request]
- 
-# This is the list of jobs that will be run concurrently.
-# Since we use a build matrix, the actual number of jobs
-# started depends on how many configurations the matrix
-# will produce.
-jobs:
-  # This is the name of the job - can be whatever.
-  test-matrix:
- 
-    # Here we tell GitHub that the jobs must be determined
-    # dynamically depending on a matrix configuration.
-    strategy:
-      matrix:
-        # The matrix will produce one job for each configuration
-        # parameter of type arduino-platform, in this case a
-        # total of 2.
-        arduino-platform: ["arduino:mbed_nano"]
-        # This is usually optional but we need to statically define the
-        # FQBN of the boards we want to test for each platform. In the
-        # future the CLI might automatically detect and download the core
-        # needed to compile against a certain FQBN, at that point the
-        # following include section will be useless.
-        include:
-          # This works like this: when the platform is "arduino:samd", the
-          # variable fqbn is set to "arduino:mbed_nano:nano33ble".
-          - arduino-platform: "arduino:mbed_nano"
-            fqbn: "arduino:mbed_nano:nano33ble"
- 
-    # This is the platform GitHub will use to run our workflow, we
-    # pick Windows for no particular reason.
-    runs-on: windows-latest
- 
-    # This is the list of steps this job will run.
-    steps:
-      # First of all, we clone the repo using the checkout action.
-      - name: Checkout
-        uses: actions/checkout@master
- 
-      # We use the arduino/setup-arduino-cli action to install and
-      # configure the Arduino CLI on the system.
-      - name: Setup Arduino CLI
-        uses: arduino/setup-arduino-cli@v1.0.0
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
- 
-      # We then install the platform, which one will be determined
-      # dynamically by the build matrix.
-      - name: Install platform
-        run: |
-          arduino-cli core update-index
-          arduino-cli core install ${{ matrix.arduino-platform }}
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
+name: PlatformIO CI
 
-      # We then install the platform, which one will be determined
-      # dynamically by the build matrix.
-      - name: Install libraries
-        run: |
-          arduino-cli lib update-index
-          arduino-cli lib install Arduino_HTS221 ArduinoBLE Arduino_LSM9DS1 Arduino_LPS22HB
-        env:
-          ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
- 
-      # Finally, we compile the sketch, using the FQBN that was set
-      # in the build matrix.
-      - name: Compile Sketch
-        run: arduino-cli compile --fqbn ${{ matrix.fqbn }} ./Firmware
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Cache PlatformIO
+      uses: actions/cache@v2
+      with:
+        path: ~/.platformio
+        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+    - name: Set up Python
+      uses: actions/setup-python@v2
+    - name: Install PlatformIO
+      run: |
+        python -m pip install --upgrade pip
+        pip install --upgrade platformio
+    - name: Run PlatformIO
+      run: pio run
+      working-directory: ./Firmware

@@ -2,15 +2,15 @@
 
 #include <NVRAM.h>
 #include "Settings.h"
-#include "SystemState.h"
-
+#include "..\SystemState\SystemState.h"
 
 class SettingsStore
 {
   public:
-    SettingsStore();
-    void Init(SystemState &state);
+    SettingsStore(SystemState &state);
+    void Init();
   private:
+    SystemState &State;
     void ReadFromEEPROM(SettingsDto &settings);
     void WriteToEEPROM(SettingsDto &settings);
 };
