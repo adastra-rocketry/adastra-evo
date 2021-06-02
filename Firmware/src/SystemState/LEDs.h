@@ -11,8 +11,8 @@ class LEDs
 {
   public:
     LEDs();
-    void setRedLED(PinMode mode);
-    void setYellowLED(PinMode mode);
-    void setGreenLED(PinMode mode);
+    void setRedLED(PinStatus mode);
+    void setYellowLED(PinStatus mode);
+    void setGreenLED(PinStatus mode);
   private:
 };

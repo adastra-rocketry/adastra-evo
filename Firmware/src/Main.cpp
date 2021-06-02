@@ -1,4 +1,3 @@
-#include "SoundModule.h"
 #include "SystemState\SystemState.h"
 #include "BluetoothStack.h"
 #include "Sensors.h"
@@ -15,7 +14,6 @@
 #include <mbed_mem_trace.h>
 
 SystemState State;
-SoundModule Sound{State};
 SettingsStore Settings{State};
 BluetoothStack Ble{State};
 Sensors SensorReader{State};
@@ -60,7 +58,6 @@ void loop() {
     Btn.Loop();
     Fla.Loop();
     PC.Loop();
-    Sound.Loop();
     DL.Loop();
     WD.Loop();    
     previousMillis = currentMillis;

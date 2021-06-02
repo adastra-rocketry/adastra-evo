@@ -15,7 +15,7 @@ void Sensors::Init() {
 
 void Sensors::StartSensors() {
   Serial.println("(re)starting sensors");
-  digitalWrite(RED_LED, HIGH);
+  State.Leds.setRedLED(HIGH);
   digitalWrite(PIN_ENABLE_SENSORS_3V3, HIGH);
   digitalWrite(PIN_ENABLE_I2C_PULLUP, HIGH);
   Wire1.begin();
@@ -23,7 +23,7 @@ void Sensors::StartSensors() {
   InitTemperatureAndHumidity();
   InitBarometer();
   Wire1Stopped = false;
-  digitalWrite(RED_LED, LOW);
+  State.Leds.setRedLED(LOW);
 }
 
 void Sensors::StopSensors() {

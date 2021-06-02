@@ -7,6 +7,7 @@
 #include "VehicleStateType.h"
 #include "..\Settings\Settings.h"
 #include "LEDs.h"
+#include "SoundModule.h"
 
 struct PyroChannelStatus {
   bool PyroChannel1Continuity = false;
@@ -25,6 +26,7 @@ class SystemState {
     void UpdateFlightState(VehicleStateType newState);
     SettingsDto Settings;
     PyroChannelStatus PyroChannel;
+    SoundModule Sound;
 
   private:
 };

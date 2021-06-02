@@ -9,14 +9,14 @@ LEDs::LEDs() {
   digitalWrite(YELLOW_LED, LOW);
 }
 
-void LEDs::setRedLED(PinMode mode) {
-  digitalWrite(RED_LED, mode);
+void LEDs::setRedLED(PinStatus status) {
+  digitalWrite(RED_LED, status);
 }
 
-void LEDs::setYellowLED(PinMode mode) {
-  digitalWrite(YELLOW_LED, mode);
+void LEDs::setYellowLED(PinStatus status) {
+  digitalWrite(YELLOW_LED, status);
 }
 
-void LEDs::setGreenLED(PinMode mode) {
-  digitalWrite(GREEN_LED, mode);
+void LEDs::setGreenLED(PinStatus status) {
+  digitalWrite(GREEN_LED, status);
 }

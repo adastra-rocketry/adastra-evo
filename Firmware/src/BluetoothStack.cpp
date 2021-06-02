@@ -44,7 +44,7 @@ void BluetoothStack::Loop() {
 void BluetoothStack::Update() {
   if(DEBUG) Serial.println("BEGIN BluetoothStack::Update()");
   
-  digitalWrite(YELLOW_LED, HIGH);
+  State.Leds.setYellowLED(HIGH);
   BLEDevice central = BLE.central();
   if (central) {
     if (central.connected()) {
@@ -52,7 +52,7 @@ void BluetoothStack::Update() {
       ProcessCommand(State);
     }
   }
-  digitalWrite(YELLOW_LED, LOW);
+  State.Leds.setYellowLED(LOW);
   if(DEBUG) Serial.println("END BluetoothStack::Update()");
 }
 
