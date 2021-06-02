@@ -1,5 +1,6 @@
 import 'package:evo_client/model/bluetooth_command.dart';
 import 'package:evo_client/provider/bluetooth.dart';
+import 'package:evo_client/components/LabeledCheckboxTile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,6 +24,13 @@ class DeviceFlightPage extends StatefulWidget {
 }
 
 class _DeviceFlightPageState extends State<DeviceFlightPage> {
+  bool _continuityAccepted = false;
+
+  void onChanged(bool newValue) {
+    setState(() {
+      _continuityAccepted = newValue;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,16 +43,10 @@ class _DeviceFlightPageState extends State<DeviceFlightPage> {
     return Consumer<Bluetooth>(
         builder: (context, bluetooth, _) {
           return Scaffold(
-            body: SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child:
-                DataTable(
-                    columns: <DataColumn>[
-                      DataColumn(label:Text("Measurement",style: TextStyle(fontWeight: FontWeight.bold),)),
-                      DataColumn(label:Text("Value",style: TextStyle(fontWeight: FontWeight.bold),)),
-                    ],
-                    rows: []
-                )
+            body:ListView(
+                  children: <Widget>[
+                    Card(child: LabeledCheckboxTile(label: 'One-line ListTile', value: _continuityAccepted, key: Key("cont"), padding: EdgeInsets.all(10.0), onChanged: onChanged)),
+                  ]
             ),
             floatingActionButton: FloatingActionButton(
               onPressed: () => { bluetooth.sendCommand(new BluetoothCommand(type: BluetoothCommandType.Launch)) },
