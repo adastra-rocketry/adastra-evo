@@ -18,9 +18,7 @@ void Calculation::Loop(SystemState &state) {
     case VehicleStateType::Ascending:
     case VehicleStateType::Descending:
     case VehicleStateType::Landed:
-      if(state.SensorReadingsReady) {
-        CalcPitchRollYaw(state.CurrentDataPoint);
-      }
+      CalcPitchRollYaw(state.CurrentDataPoint);
       break;
     
     case VehicleStateType::Calibrating:

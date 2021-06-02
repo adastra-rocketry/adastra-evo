@@ -6,7 +6,7 @@ Sensors::Sensors() {
 
 void Sensors::Init() {
   if(DEBUG) Serial.println("BEGIN Sensors::Init()");
-  //Wire1.setClock(10000);
+  Wire1.setClock(400000);
   StartSensors();
 
   if(DEBUG) Serial.println("END Sensors::Init()");
@@ -67,38 +67,27 @@ void Sensors::InitTemperatureAndHumidity() {
 
 void Sensors::Loop(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN Sensors::Loop()");
-
+  digitalWrite(PIN_ENABLE_SENSORS_3V3, HIGH);
+  digitalWrite(PIN_ENABLE_I2C_PULLUP, HIGH);
   if(Wire1Stopped) StartSensors();
-  
-  // check if a read took too long and restart the I2C-Bus if needed
-  unsigned long readStart = millis();
 
   digitalWrite(GREEN_LED, HIGH);
 
   // Update DataPoint
   state.CurrentDataPoint.State = state.VehicleState;
   state.CurrentDataPoint.Timestamp = millis();
-  switch(i) {
-    case 0:
-      state.CurrentDataPoint.Pressure = ReadPressure();
-      break;
-    case 1:
-      float humidity;
-      ReadTemperatureAndHumidity(state.CurrentDataPoint.Temperature, humidity);
-      break;
-    case 2:
-      ReadAcceleration(state.CurrentDataPoint.Acc_X, state.CurrentDataPoint.Acc_Y, state.CurrentDataPoint.Acc_Z);
-      ReadGyroscope(state.CurrentDataPoint.G_X, state.CurrentDataPoint.G_Y, state.CurrentDataPoint.G_Z);
-      ReadMagneticField(state.CurrentDataPoint.Mag_X, state.CurrentDataPoint.Mag_Y, state.CurrentDataPoint.Mag_Z);
-      break;
-  }
-  i++;
-  if(i > 2) {
-    state.SensorReadingsReady = true;
-    i = 0;
-  } else {
-    state.SensorReadingsReady = false;
-  }
+  WatchDogTimer = millis();
+  state.CurrentDataPoint.Pressure = ReadPressure();
+  if(!CheckWatchDog()) return;
+  float humidity;
+  ReadTemperatureAndHumidity(state.CurrentDataPoint.Temperature, humidity);
+  if(!CheckWatchDog()) return;
+  ReadAcceleration(state.CurrentDataPoint.Acc_X, state.CurrentDataPoint.Acc_Y, state.CurrentDataPoint.Acc_Z);
+  if(!CheckWatchDog()) return;
+  ReadGyroscope(state.CurrentDataPoint.G_X, state.CurrentDataPoint.G_Y, state.CurrentDataPoint.G_Z);
+  if(!CheckWatchDog()) return;
+  ReadMagneticField(state.CurrentDataPoint.Mag_X, state.CurrentDataPoint.Mag_Y, state.CurrentDataPoint.Mag_Z);
+  if(!CheckWatchDog()) return;
 
   if(BackupIMUAvailable) {
     ReadMPU6050(
@@ -111,9 +100,6 @@ void Sensors::Loop(SystemState &state) {
       state.CurrentDataPoint.Back_G_Z, 
       state.CurrentDataPoint.Back_Temperature
     );
-  }
-  if(millis() - readStart > SAVE_INTERVAL * 2) {
-    StopSensors();
   }
 
   digitalWrite(GREEN_LED, LOW);
@@ -174,4 +160,13 @@ void Sensors::ReadTemperatureAndHumidity(float& temperature, float &humidity) {
   temperature = temp.temperature;
   humidity = hum.relative_humidity;
   if(DEBUG) Serial.println("END Sensors::ReadTemperatureAndHumidity()");
+}
+
+bool Sensors::CheckWatchDog() {
+  if(millis() - WatchDogTimer > 10) {
+    StopSensors();
+    return false;
+  }
+  WatchDogTimer = millis();
+  return true;
 }

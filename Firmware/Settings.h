@@ -2,7 +2,7 @@
 #define DEBUG false
 #define SOUND true
 #define BUZZER_PIN 4
-#define SAVE_INTERVAL 33
+#define SAVE_INTERVAL 50
 #define BLE_UPDATE_INTERVAL 400
 
 #define GREEN_LED A2

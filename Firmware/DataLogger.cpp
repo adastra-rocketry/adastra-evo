@@ -18,9 +18,7 @@ void DataLogger::Init() {
 }
 
 void DataLogger::Loop(SystemState &state) {
-  if(state.SensorReadingsReady) {
-
-  }
+  
 }
 
 void DataLogger::EraseAll() {
