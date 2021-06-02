@@ -26,8 +26,10 @@ Button Button;
 
 unsigned long previousMillis = 0;
 unsigned long previousBLEUpdateMillis = 0;
+char printEvent[100];
 
 void InitLEDs();
+void SensorLoop();
 
 void setup() {
   Serial.begin(115200);
@@ -46,7 +48,7 @@ void setup() {
   if(DEBUG) Serial.println("END Setup()");
 }
 
-char printEvent[100];
+
 
 void loop() {
   if(DEBUG) Serial.println("Begin Loop()");

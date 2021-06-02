@@ -38,6 +38,7 @@ class Sensors
     void ReadMagneticField(float &m_x, float &m_y, float &m_z);   
     void ReadMPU6050(float &acc_x, float &acc_y, float &acc_z, float &g_x, float &g_y, float &g_z, float &temp);
     unsigned long WatchDogTimer;
+    unsigned int loopDivider = 0;
     bool CheckWatchDog();
     sensors_event_t a, m, g, temp, hum;
 };

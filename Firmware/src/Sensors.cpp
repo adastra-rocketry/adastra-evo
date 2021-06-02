@@ -7,17 +7,18 @@ Sensors::Sensors() {
 void Sensors::Init() {
   if(DEBUG) Serial.println("BEGIN Sensors::Init()");
   Wire1.setClock(400000);
-  StartSensors();
+  StartSensors();  
+  InitMPU6050(); // not affected by I2C bug
 
   if(DEBUG) Serial.println("END Sensors::Init()");
 }
 
 void Sensors::StartSensors() {
+  Serial.println("(re)starting sensors");
   digitalWrite(PIN_ENABLE_SENSORS_3V3, HIGH);
   digitalWrite(PIN_ENABLE_I2C_PULLUP, HIGH);
   Wire1.begin();
   InitIMU();
-  InitMPU6050();
   InitTemperatureAndHumidity();
   InitBarometer();
   Wire1Stopped = false;
@@ -67,21 +68,27 @@ void Sensors::InitTemperatureAndHumidity() {
 
 void Sensors::Loop(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN Sensors::Loop()");
-  digitalWrite(PIN_ENABLE_SENSORS_3V3, HIGH);
-  digitalWrite(PIN_ENABLE_I2C_PULLUP, HIGH);
   if(Wire1Stopped) StartSensors();
-
   digitalWrite(GREEN_LED, HIGH);
 
   // Update DataPoint
   state.CurrentDataPoint.State = state.VehicleState;
   state.CurrentDataPoint.Timestamp = millis();
   WatchDogTimer = millis();
+
+  //read pressure
   state.CurrentDataPoint.Pressure = ReadPressure();
   if(!CheckWatchDog()) return;
-  float humidity;
-  ReadTemperatureAndHumidity(state.CurrentDataPoint.Temperature, humidity);
-  if(!CheckWatchDog()) return;
+
+  // read temperature only every 10 reads
+  if(loopDivider % 10 == 0) {
+    float humidity;
+    ReadTemperatureAndHumidity(state.CurrentDataPoint.Temperature, humidity);
+    if(!CheckWatchDog()) return;
+  }
+  loopDivider++;
+
+  // read IMU
   ReadAcceleration(state.CurrentDataPoint.Acc_X, state.CurrentDataPoint.Acc_Y, state.CurrentDataPoint.Acc_Z);
   if(!CheckWatchDog()) return;
   ReadGyroscope(state.CurrentDataPoint.G_X, state.CurrentDataPoint.G_Y, state.CurrentDataPoint.G_Z);
@@ -89,6 +96,7 @@ void Sensors::Loop(SystemState &state) {
   ReadMagneticField(state.CurrentDataPoint.Mag_X, state.CurrentDataPoint.Mag_Y, state.CurrentDataPoint.Mag_Z);
   if(!CheckWatchDog()) return;
 
+  // read backup IMU if available
   if(BackupIMUAvailable) {
     ReadMPU6050(
 
@@ -101,7 +109,6 @@ void Sensors::Loop(SystemState &state) {
       state.CurrentDataPoint.Back_Temperature
     );
   }
-
   digitalWrite(GREEN_LED, LOW);
   if(DEBUG) Serial.println("END Sensors::Loop()");
 }
@@ -121,7 +128,6 @@ void Sensors::ReadMPU6050(float &acc_x, float &acc_y, float &acc_z, float &g_x, 
 
 void Sensors::ReadAcceleration(float &acc_x, float &acc_y, float &acc_z ) {
   if(DEBUG) Serial.println("BEGIN Sensors::ReadAcceleration()");
-  acc_x = -999, acc_y = -999, acc_z = -999;
   if (IMU.accelerationAvailable()) {
     IMU.readAcceleration(acc_x,acc_y,acc_z);
   }
@@ -130,9 +136,8 @@ void Sensors::ReadAcceleration(float &acc_x, float &acc_y, float &acc_z ) {
 
 void Sensors::ReadGyroscope(float &g_x, float &g_y, float &g_z) {
   if(DEBUG) Serial.println("BEGIN Sensors::ReadGyroscope()");
-  g_x = -999, g_y = -999, g_z = -999;
   if (IMU.gyroscopeAvailable()) {
-    IMU.readGyroscope(g_y, g_x,g_z);   // X and Y seem to be invert and swapped
+    IMU.readGyroscope(g_y, g_x, g_z);   // X and Y seem to be invert and swapped
     g_x *= -1;
     g_y *= -1;
   }
@@ -141,7 +146,6 @@ void Sensors::ReadGyroscope(float &g_x, float &g_y, float &g_z) {
 
 void Sensors::ReadMagneticField(float &m_x, float &m_y, float &m_z) {
   if(DEBUG) Serial.println("BEGIN Sensors::ReadMagneticField()");
-  m_x = -999, m_y = -999, m_z = -999;
   if (IMU.magneticFieldAvailable()) {
     IMU.readMagneticField(m_x, m_y, m_z);
   }
