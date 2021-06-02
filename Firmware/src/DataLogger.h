@@ -6,7 +6,6 @@
 #include "Arduino.h"
 #include "SystemState.h"
 #include "DataPoint.h"
-#include <SerialFlash.h>
 #include <SPI.h>
 
 #define CSPIN 8
