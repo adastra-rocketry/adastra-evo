@@ -97,7 +97,6 @@ void BluetoothStack::ProcessCommand(SystemState& state) {
         State.Settings.LaunchAltitude = command.Arg1;
         State.Settings.PressureNN = command.Arg2;
         strcpy(State.Settings.Name, command.Arg3);
-        State.StartNewRecording();
         break;
       default:
         if(DEBUG) {

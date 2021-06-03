@@ -5,8 +5,7 @@
 #include "Arduino.h"
 #include "FlightStateAnalyzer.h"
 #include "Watchdog.h"
-#include "DataLogger.h"
-#include "Settings\SettingsStore.h"
+#include "FlashMemory.h"
 #include "Button.h"
 #include "PyroChannels.h"
 
@@ -14,12 +13,11 @@
 #include <mbed_mem_trace.h>
 
 SystemState State;
-SettingsStore Settings{State};
 BluetoothStack Ble{State};
 Sensors SensorReader{State};
 Calculation Calc{State};
 FlightStateAnalyzer Fla{State};
-DataLogger DL{State};
+FlashMemory FL{State};
 Watchdog WD{State};
 Button Btn{State};
 PyroChannels PC{State};
@@ -34,9 +32,8 @@ void setup() {
   Serial.begin(115200);
   State.Init();
   Btn.Init();
-  //Settings.Init(State);
   SensorReader.Init();
-  DL.Init();
+  FL.Init();
   Ble.Init();
   Calc.Init();
   Fla.Init();
@@ -58,8 +55,8 @@ void loop() {
     Btn.Loop();
     Fla.Loop();
     PC.Loop();
-    DL.Loop();
-    WD.Loop();    
+    FL.Loop();
+    WD.Loop();
     previousMillis = currentMillis;
   }
   if(currentMillis - previousBLEUpdateMillis >= BLE_UPDATE_INTERVAL) {
