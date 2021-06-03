@@ -11,6 +11,8 @@ class PyroChannels
     PyroChannels(SystemState &state);
     void Init();
     void Loop();
+    void FirePyroChannel1();
+    void FirePyroChannel2();
   private:
     SystemState &State;
     void CheckContinuity();

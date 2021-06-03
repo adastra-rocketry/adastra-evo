@@ -58,13 +58,17 @@ void BluetoothStack::Update() {
 
 void BluetoothStack::UpdateCharacteristics(SystemState &state) {
   if(DEBUG) Serial.println("BEGIN BluetoothStack::UpdateCharacteristics()");
-  unsigned char bDP[sizeof(State.CurrentDataPoint)];
-  memcpy(bDP, &State.CurrentDataPoint, sizeof(State.CurrentDataPoint));
-  currentDataPointServiceChar.writeValue(bDP, sizeof(bDP)); // and publish it via BT
+  unsigned char b[sizeof(state.CurrentDataPoint)];
+  memcpy(b, &state.CurrentDataPoint, sizeof(state.CurrentDataPoint));
+  currentDataPointServiceChar.writeValue(b, sizeof(b)); // and publish it via BT
 
-  unsigned char bPC[sizeof(State.PyroChannel)];
+	unsigned char bPC[sizeof(State.PyroChannel)];
   memcpy(bPC, &State.PyroChannel, sizeof(State.PyroChannel));
   pyroChannelServiceChar.writeValue(bPC, sizeof(bPC)); // and publish it via BT
+
+  unsigned char bs[sizeof(state.Settings)];
+  memcpy(bs, &state.Settings, sizeof(state.Settings));
+  settingsServiceChar.writeValue(bs, sizeof(bs)); // and publish it via BT
   if(DEBUG) Serial.println("END BluetoothStack::UpdateCharacteristics()");
 }
 

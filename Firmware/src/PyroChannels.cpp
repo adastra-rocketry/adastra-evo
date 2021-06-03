@@ -21,9 +21,13 @@ void PyroChannels::Loop()
   switch (State.VehicleState)
   {
     case VehicleStateType::Idle:
+    
+      FirePyroChannel1();
+      FirePyroChannel2();
       CheckContinuity();
       break;
     case VehicleStateType::LaunchIdle:
+      break;
     case VehicleStateType::Ascending:
     case VehicleStateType::Descending:
     case VehicleStateType::Landed:
@@ -41,4 +45,12 @@ void PyroChannels::CheckContinuity()
 
   buttonState = digitalRead(PYRO_2_CONTINUITY_PIN);
   State.PyroChannel.PyroChannel2Continuity = (buttonState == HIGH);
+}
+
+void PyroChannels::FirePyroChannel1() {
+  digitalWrite(PYRO_1_PIN, HIGH);
+}
+
+void PyroChannels::FirePyroChannel2() {
+  digitalWrite(PYRO_2_PIN, HIGH);
 }
