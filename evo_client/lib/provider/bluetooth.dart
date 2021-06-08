@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:evo_client/model/bluetooth_command.dart';
 import 'package:evo_client/model/data_point.dart';
+import 'package:evo_client/model/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:location_permissions/location_permissions.dart';
@@ -108,7 +109,7 @@ class Bluetooth extends ChangeNotifier {
     final mtu = await flutterReactiveBle.requestMtu(deviceId: device.id, mtu: 250);
     print('set MTU to $mtu');
 
-    final characteristic = GetCharacteristic('61e8de2f-935b-42b2-ae5b-50d444b540eb') as QualifiedCharacteristic;
+    final characteristic = getCharacteristic('61e8de2f-935b-42b2-ae5b-50d444b540eb') as QualifiedCharacteristic;
     _characteristicSubscription = flutterReactiveBle.subscribeToCharacteristic(characteristic).listen((data) {
       _parseNewDataPoint(data);
     }, onError: (dynamic error) {
@@ -118,7 +119,7 @@ class Bluetooth extends ChangeNotifier {
     notifyListeners();
   }
 
-  QualifiedCharacteristic? GetCharacteristic(charGuid) {
+  QualifiedCharacteristic? getCharacteristic(charGuid) {
     if(_currentBluetoothDevice != null) {
       return QualifiedCharacteristic(serviceId: Uuid.parse('92aab162-79af-422f-a53b-fca7b98e2327'), characteristicId: Uuid.parse(charGuid), deviceId: _currentBluetoothDevice?.id as String);
     } else {
@@ -136,9 +137,16 @@ class Bluetooth extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<Settings> readSettings() async {
+    final characteristic = getCharacteristic("da4b4a5a-bdd5-4e9f-945a-55180c8b3b87") as QualifiedCharacteristic;
+    final response = await flutterReactiveBle.readCharacteristic(characteristic);
+    var settings = Settings.create(response);
+    return settings;
+  }
+
   Future<void> sendCommand(BluetoothCommand command) async {
     var data = command.asBytes();
-    final characteristic = GetCharacteristic('da4b4a5a-bdd5-4e9f-945a-55180c8b3f53') as QualifiedCharacteristic;
+    final characteristic = getCharacteristic('da4b4a5a-bdd5-4e9f-945a-55180c8b3f53') as QualifiedCharacteristic;
     await flutterReactiveBle.writeCharacteristicWithResponse(characteristic, value: data);
   }
 }

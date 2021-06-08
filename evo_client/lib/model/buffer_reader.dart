@@ -1,28 +1,15 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 
-import 'package:flutter/material.dart';
+class BufferReader {
+  int _offset = 0;
 
-class PyroChannel {
-  PyroChannel({
-    required this.pyroChannel1Continuity,
-    required this.pyroChannel2Continuity,
-  }) : super();
-
-  static int _offset = 0;
-  bool pyroChannel1Continuity;
-  bool pyroChannel2Continuity;
-
-  static PyroChannel create(List<int> list) {
-    var data = new Uint8List.fromList(list).buffer.asByteData(); // Buffer bytes from list
+  void resetOffset() {
     _offset = 0;
-    return new PyroChannel(
-      pyroChannel1Continuity: _readBuffer(data),
-      pyroChannel2Continuity: _readBuffer(data),
-    );
   }
 
-  static T? _readBuffer<T>(ByteData b, {int size=4, bool signed=true, bool debug=false}) {
+  T? readBuffer<T>(ByteData b, {int size=4, bool signed=true, bool debug=false}) {
     T? value;
 
     switch (T) {
@@ -50,21 +37,15 @@ class PyroChannel {
         }
         break;
       case double:
-        if(debug) {
-          print(b.buffer.asInt8List(_offset, 4));
-        }
         value = b.getFloat32(_offset, Endian.little) as T;
+        break;
+      case String:
+        value = String.fromCharCodes(b.buffer.asInt8List(_offset, size)) as T;
         break;
     }
 
     _offset = _offset + 4; // Offset is always 4 - regardless of data type
     return value;
   }
-
-  Map<String, bool> asMap() {
-    var map = new Map<String, bool>();
-    map["Pyro1"] = pyroChannel1Continuity;
-    map["Pyro2"] = pyroChannel2Continuity;
-    return map;
-  }
 }
+

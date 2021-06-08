@@ -32,7 +32,6 @@ class _DeviceMainPageState extends State<DeviceMainPage> {
   void deactivate() async {
     await Provider.of<Bluetooth>(context, listen: false).disconnectFromCurrentDevice();
     super.deactivate();
-
   }
 
   void onTabTapped(int index) {

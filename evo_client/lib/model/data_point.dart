@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import 'buffer_reader.dart';
+
 class DataPoint {
   DataPoint({
     required this.state,
@@ -36,7 +38,8 @@ class DataPoint {
     required this.kalmanTemperature,
   }) : super();
 
-  static int _offset = 0;
+  static BufferReader _bufferReader = new BufferReader();
+
   int? state;
   int? timeStamp;
   double? pressure;
@@ -69,78 +72,42 @@ class DataPoint {
 
   static DataPoint create(List<int> list) {
     var data = new Uint8List.fromList(list).buffer.asByteData(); // Buffer bytes from list
-    _offset = 0;
+    _bufferReader.resetOffset();
     return new DataPoint(
-      state: _readBuffer(data),
-      timeStamp: _readBuffer(data, signed: false),
-      pressure: _readBuffer(data),
-      temperature: _readBuffer(data),
-      accX: _readBuffer(data),
-      accY: _readBuffer(data),
-      accZ: _readBuffer(data),
-      gX: _readBuffer(data),
-      gY: _readBuffer(data),
-      gZ: _readBuffer(data),
-      magX: _readBuffer(data),
-      magY: _readBuffer(data),
-      magZ: _readBuffer(data),
+      state: _bufferReader.readBuffer(data),
+      timeStamp: _bufferReader.readBuffer(data, signed: false),
+      pressure: _bufferReader.readBuffer(data),
+      temperature: _bufferReader.readBuffer(data),
+      accX: _bufferReader.readBuffer(data),
+      accY: _bufferReader.readBuffer(data),
+      accZ: _bufferReader.readBuffer(data),
+      gX: _bufferReader.readBuffer(data),
+      gY: _bufferReader.readBuffer(data),
+      gZ: _bufferReader.readBuffer(data),
+      magX: _bufferReader.readBuffer(data),
+      magY: _bufferReader.readBuffer(data),
+      magZ: _bufferReader.readBuffer(data),
 
-      backAccX: _readBuffer(data),
-      backAccY: _readBuffer(data),
-      backAccZ: _readBuffer(data),
-      backGX: _readBuffer(data),
-      backGY: _readBuffer(data),
-      backGZ: _readBuffer(data),
+      backAccX: _bufferReader.readBuffer(data),
+      backAccY: _bufferReader.readBuffer(data),
+      backAccZ: _bufferReader.readBuffer(data),
+      backGX: _bufferReader.readBuffer(data),
+      backGY: _bufferReader.readBuffer(data),
+      backGZ: _bufferReader.readBuffer(data),
 
-      backTemperature: _readBuffer(data),
+      backTemperature: _bufferReader.readBuffer(data),
 
-      pitch: _readBuffer(data, debug: true),
-      roll: _readBuffer(data),
-      yaw: _readBuffer(data),
+      pitch: _bufferReader.readBuffer(data, debug: true),
+      roll: _bufferReader.readBuffer(data),
+      yaw: _bufferReader.readBuffer(data),
 
-      pressureDelta: _readBuffer(data),
-      kalmanPressureDelta: _readBuffer(data),
-      altitude: _readBuffer(data),
-      kalmanPressure: _readBuffer(data),
-      kalmanAltitude: _readBuffer(data),
-      kalmanTemperature: _readBuffer(data),
+      pressureDelta: _bufferReader.readBuffer(data),
+      kalmanPressureDelta: _bufferReader.readBuffer(data),
+      altitude: _bufferReader.readBuffer(data),
+      kalmanPressure: _bufferReader.readBuffer(data),
+      kalmanAltitude: _bufferReader.readBuffer(data),
+      kalmanTemperature: _bufferReader.readBuffer(data),
     );
-  }
-
-  static T? _readBuffer<T>(ByteData b, {int size=4, bool signed=true, bool debug=false}) {
-    T? value;
-
-    switch (T) {
-      case int:
-        switch (size) {
-          case 4:
-            if(signed) {
-              value = b.getInt32(_offset, Endian.little) as T;
-            }
-            else {
-              value = b.getUint32(_offset, Endian.little) as T;
-            }
-            break;
-          case 2:
-            if(signed) {
-              value = b.getInt16(_offset, Endian.little) as T;
-            }
-            else {
-              value = b.getUint16(_offset, Endian.little) as T;
-            }
-            break;
-        }
-        break;
-      case double:
-        if(debug) {
-          print(b.buffer.asInt8List(_offset, 4));
-        }
-        value = b.getFloat32(_offset, Endian.little) as T;
-        break;
-    }
-
-    _offset = _offset + 4; // Offset is always 4 - regardless of data type
-    return value;
   }
 
   Map<String, String> asMap() {

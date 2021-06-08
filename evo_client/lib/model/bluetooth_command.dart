@@ -9,12 +9,12 @@ enum BluetoothCommandType {
 }
 
 class BluetoothCommand {
-  BluetoothCommand({required this.type, this.Arg1, this.Arg2, this.Arg3});
+  BluetoothCommand({required this.type, this.arg1, this.arg2, this.arg3});
 
   BluetoothCommandType type;
-  double? Arg1;
-  double? Arg2;
-  String? Arg3;
+  double? arg1;
+  double? arg2;
+  String? arg3;
 
   Int8List asBytes() {
     var bdata = new ByteData(28);
@@ -31,10 +31,10 @@ class BluetoothCommand {
         break;
     }
 
-    if(Arg1 != null) bdata.setFloat32(4, Arg1 as double, Endian.little);
-    if(Arg2 != null) bdata.setFloat32(8, Arg2 as double, Endian.little);
-    if(Arg3 != null) {
-      var data = utf8.encode(Arg3 as String);
+    if(arg1 != null) bdata.setFloat32(4, arg1 as double, Endian.little);
+    if(arg2 != null) bdata.setFloat32(8, arg2 as double, Endian.little);
+    if(arg3 != null) {
+      var data = utf8.encode(arg3 as String);
       if(data.length <= 16) {
         for (var i = 0; i < data.length; i++) {
           int byte = data[i];

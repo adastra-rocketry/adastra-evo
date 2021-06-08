@@ -1,4 +1,5 @@
 import 'package:evo_client/model/bluetooth_command.dart';
+import 'package:evo_client/model/settings.dart';
 import 'package:evo_client/provider/bluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +25,32 @@ class DeviceSettingsPage extends StatefulWidget {
 
 class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
 
+  Settings? _settings;
+  late TextEditingController _nameController;
+
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: _settings != null ? _settings?.name as String : "");
+    writeSettings();
+    loadSettings();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+
+  Future<void> loadSettings() async {
+
+    _settings = await Provider.of<Bluetooth>(context, listen: false).readSettings();
+  }
+
+  Future<void> writeSettings() async {
+    await Provider.of<Bluetooth>(context, listen: false).sendCommand(new BluetoothCommand(type: BluetoothCommandType.Settings, arg1: 123.0, arg2: 321.0, arg3: "Test"));
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -47,19 +74,21 @@ class _DeviceSettingsPageState extends State<DeviceSettingsPage> {
                       DataRow(
                         cells: <DataCell>[
                           DataCell(Text('Name')),
-                          DataCell(Text('Evo')),
-                        ],
+                          DataCell(TextField(
+                            controller: _nameController,
+                          ),
+                          )],
                       ),
                       DataRow(
                         cells: <DataCell>[
                           DataCell(Text('LaunchAltitude')),
-                          DataCell(Text('100')),
+                          DataCell(Text(_settings != null ? _settings?.launchAltitude.toString() as String : "")),
                         ],
                       ),
                       DataRow(
                         cells: <DataCell>[
                           DataCell(Text('Air Pressure')),
-                          DataCell(Text('102')),
+                          DataCell(Text(_settings != null ? _settings?.pressureNN.toString() as String : "")),
                         ],
                       ),
                     ]
