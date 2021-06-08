@@ -22,6 +22,7 @@ void BluetoothStack::Init() {
   bleMainService.addCharacteristic(currentDataPointServiceChar);
   bleMainService.addCharacteristic(commandServiceChar);
   bleMainService.addCharacteristic(pyroChannelServiceChar);
+  bleMainService.addCharacteristic(settingsServiceChar);
   BLE.addService(bleMainService);
   
   /* Start advertising BLE.  It will start continuously transmitting BLE
