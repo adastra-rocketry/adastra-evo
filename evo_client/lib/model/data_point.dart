@@ -24,9 +24,6 @@ class DataPoint {
     required this.backGY,
     required this.backGZ,
     required this.backTemperature,
-    required this.magX,
-    required this.magY,
-    required this.magZ,
     required this.pitch,
     required this.roll,
     required this.yaw,
@@ -50,9 +47,6 @@ class DataPoint {
   double? gX;
   double? gY;
   double? gZ;
-  double? magX;
-  double? magY;
-  double? magZ;
   double? backAccX;
   double? backAccY;
   double? backAccZ;
@@ -63,12 +57,8 @@ class DataPoint {
   int? pitch;
   int? roll;
   int? yaw;
-  double? pressureDelta;
-  double? kalmanPressureDelta;
   double? altitude;
   double? kalmanPressure;
-  double? kalmanAltitude;
-  double? kalmanTemperature;
 
   static DataPoint create(List<int> list) {
     var data = new Uint8List.fromList(list).buffer.asByteData(); // Buffer bytes from list
@@ -84,9 +74,6 @@ class DataPoint {
       gX: _bufferReader.readBuffer(data),
       gY: _bufferReader.readBuffer(data),
       gZ: _bufferReader.readBuffer(data),
-      magX: _bufferReader.readBuffer(data),
-      magY: _bufferReader.readBuffer(data),
-      magZ: _bufferReader.readBuffer(data),
 
       backAccX: _bufferReader.readBuffer(data),
       backAccY: _bufferReader.readBuffer(data),
@@ -101,12 +88,8 @@ class DataPoint {
       roll: _bufferReader.readBuffer(data),
       yaw: _bufferReader.readBuffer(data),
 
-      pressureDelta: _bufferReader.readBuffer(data),
-      kalmanPressureDelta: _bufferReader.readBuffer(data),
       altitude: _bufferReader.readBuffer(data),
       kalmanPressure: _bufferReader.readBuffer(data),
-      kalmanAltitude: _bufferReader.readBuffer(data),
-      kalmanTemperature: _bufferReader.readBuffer(data),
     );
   }
 
@@ -119,8 +102,6 @@ class DataPoint {
     map["Temperature"] = temperature == null ? "" : temperature.toString();
 
     map["Altitude"] = altitude == null ? "" : altitude.toString();
-    map["Kalman Altitude"] = kalmanAltitude == null ? "" : kalmanAltitude.toString();
-    map["Kalman Temperature"] = kalmanTemperature == null ? "" : kalmanTemperature.toString();
 
     map["Pitch"] = pitch == null ? "" : pitch.toString();
     map["Roll"] = roll == null ? "" : roll.toString();
@@ -132,9 +113,6 @@ class DataPoint {
     map["Gyro X"] = gX == null ? "" : gX.toString();
     map["Gyro Y"] = gY == null ? "" : gY.toString();
     map["Gyro Z"] = gZ == null ? "" : gZ.toString();
-    map["Compass X"] = gX == null ? "" : gX.toString();
-    map["Compass Y"] = gY == null ? "" : gY.toString();
-    map["Compass Z"] = gZ == null ? "" : gZ.toString();
 
 
     map["Backup Acceleration X"] = backAccX == null ? "" : backAccX.toString();
@@ -146,8 +124,6 @@ class DataPoint {
 
     map["Backup Temperature"] = backTemperature == null ? "" : backTemperature.toString();
 
-    map["Pressure Delta"] = pressureDelta == null ? "" : pressureDelta.toString();
-    map["Kalman Pressure Delta"] = kalmanPressureDelta == null ? "" : kalmanPressureDelta.toString();
     map["Kalman Pressure"] = kalmanPressure == null ? "" : kalmanPressure.toString();
     return map;
   }
