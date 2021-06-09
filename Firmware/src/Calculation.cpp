@@ -18,6 +18,7 @@ void Calculation::Loop()
   case VehicleStateType::Descending:
   case VehicleStateType::Landed:
     CalcPitchRollYaw();
+    UpdateKalmanFilters();
     break;
 
   case VehicleStateType::Calibrating:
@@ -39,4 +40,8 @@ void Calculation::CalcPitchRollYaw()
   State.CurrentDataPoint.Yaw = round(fusion.getYaw());
   if (DEBUG)
     Serial.println("END Calculation::CalcPitchRollYaw()");
+}
+
+void Calculation::UpdateKalmanFilters() {
+  State.CurrentDataPoint.KalmanPressure = PressureKalmanFilter.updateEstimate(State.CurrentDataPoint.Pressure);
 }
