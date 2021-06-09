@@ -11,7 +11,7 @@ void Button::Init() {
 void Button::Loop() {
   int buttonState = digitalRead(BUTTON_PIN);
   if (buttonState == HIGH) {
-    State.UpdateFlightState(VehicleStateType::Calibrating);
+    State.UpdateFlightState(VehicleStateType::LaunchIdle);
   }
 
 }

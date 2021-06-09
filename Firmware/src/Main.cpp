@@ -8,6 +8,7 @@
 #include "Button.h"
 #include "PyroChannels.h"
 #include "TVC.h"
+#include "SDWriter.h"
 
 SystemState State;
 Sensors SensorReader{State};
@@ -18,6 +19,7 @@ Watchdog WD{State};
 Button Btn{State};
 PyroChannels PC{State};
 TVC Tvc{State};
+SDWriter SDW{State};
 
 unsigned long previousMillis = 0;
 unsigned long previousBLEUpdateMillis = 0;
@@ -36,6 +38,7 @@ void setup() {
   WD.Init();
   PC.Init();
   Tvc.Init();
+  SDW.Init();
   if(DEBUG) Serial.println("END Setup()");
 }
 
@@ -53,12 +56,12 @@ void loop() {
     Tvc.Loop();
     PC.Loop();
     WD.Loop();
+    SDW.Loop();
     previousMillis = currentMillis;
   }
   if(currentMillis - previousBLEUpdateMillis >= BLE_UPDATE_INTERVAL) {
     Ble.Update();
     previousBLEUpdateMillis = currentMillis;
-    //print_memory_info(printEvent, sizeof(printEvent));
   }
   
   if(DEBUG) Serial.println("END Loop()");

@@ -18,7 +18,10 @@
 
 #define BUTTON_PIN 5
 
-struct SettingsDto {
+#define SD_CARD_PIN 8
+
+struct SettingsDto
+{
     float LaunchAltitude = 145.0f;
     float PressureNN = 1027.6f;
     char Name[16];

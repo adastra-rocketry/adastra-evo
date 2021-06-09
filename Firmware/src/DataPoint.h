@@ -14,10 +14,6 @@ struct DataPoint {
   float G_Y;
   float G_Z;
 
-  float Mag_X;
-  float Mag_Y;
-  float Mag_Z;
-
   float Back_Acc_X;
   float Back_Acc_Y;
   float Back_Acc_Z;
@@ -32,12 +28,7 @@ struct DataPoint {
   int Roll;
   int Yaw;
   
-  float PressureDelta;
-  float KalmanPressureDelta;
-
   float Altitude;
   
   float KalmanPressure;
-  float KalmanAltitude;
-  float KalmanTemperature;
 };

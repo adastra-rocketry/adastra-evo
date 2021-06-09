@@ -9,6 +9,10 @@ void SystemState::Init() {
   VehicleState = VehicleStateType::Idle;
 }
 
+void SystemState::Loop() {
+  Sound.Loop();
+}
+
 void SystemState::StartNewRecording() {
   
 }

@@ -18,6 +18,7 @@ class SystemState {
   public:
     SystemState();
     void Init();
+    void Loop();
     LEDs Leds;
     VehicleStateType VehicleState = VehicleStateType::Idle;
     DataPoint CurrentDataPoint;
