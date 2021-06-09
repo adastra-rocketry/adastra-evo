@@ -1,6 +1,6 @@
 #pragma once
-#include "SystemState\SystemState.h"
-#include "Settings\Settings.h"
+#include "SystemState/SystemState.h"
+#include "Settings/Settings.h"
 #include "Arduino.h"
 
 class FlightStateAnalyzer {

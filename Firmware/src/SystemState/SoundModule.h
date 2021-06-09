@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\Settings\Settings.h"
+#include "../Settings/Settings.h"
 #include "Arduino.h"
 
 

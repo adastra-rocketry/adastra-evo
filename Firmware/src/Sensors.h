@@ -4,8 +4,8 @@
 #pragma once
 
 #include "Arduino.h"
-#include "SystemState\SystemState.h"
-#include "Settings\Settings.h"
+#include "SystemState/SystemState.h"
+#include "Settings/Settings.h"
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_MPU6050.h>

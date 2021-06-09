@@ -3,9 +3,9 @@
 */
 #pragma once
 
-#include "..\DataPoint.h"
+#include "../DataPoint.h"
 #include "VehicleStateType.h"
-#include "..\Settings\Settings.h"
+#include "../Settings/Settings.h"
 #include "LEDs.h"
 #include "SoundModule.h"
 

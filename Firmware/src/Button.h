@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Arduino.h"
-#include "SystemState\SystemState.h"
+#include "SystemState/SystemState.h"
 
 class Button
 {

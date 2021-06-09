@@ -1,5 +1,5 @@
 #pragma once
-#include "SystemState\VehicleStateType.h"
+#include "SystemState/VehicleStateType.h"
 
 struct DataPoint {
   VehicleStateType State;

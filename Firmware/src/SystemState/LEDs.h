@@ -5,7 +5,7 @@
 
 #include "Arduino.h"
 #include "LEDs.h"
-#include "..\Settings\Settings.h"
+#include "../Settings/Settings.h"
 
 class LEDs
 {

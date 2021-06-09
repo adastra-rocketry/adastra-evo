@@ -1,9 +1,9 @@
 #include <ArduinoBLE.h>
 #include <Arduino.h>
 #include <ArduinoBLE.h>
-#include "Settings\Settings.h"
-#include "SystemState\VehicleStateType.h"
-#include "SystemState\SystemState.h"
+#include "Settings/Settings.h"
+#include "SystemState/VehicleStateType.h"
+#include "SystemState/SystemState.h"
 
 struct Command {
   char Type;
