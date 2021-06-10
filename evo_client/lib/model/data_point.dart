@@ -27,12 +27,8 @@ class DataPoint {
     required this.pitch,
     required this.roll,
     required this.yaw,
-    required this.pressureDelta,
-    required this.kalmanPressureDelta,
     required this.altitude,
     required this.kalmanPressure,
-    required this.kalmanAltitude,
-    required this.kalmanTemperature,
   }) : super();
 
   static BufferReader _bufferReader = new BufferReader();
