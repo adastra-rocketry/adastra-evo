@@ -31,6 +31,7 @@ class _DeviceMainPageState extends State<DeviceMainPage> {
   @override
   void deactivate() async {
     await Provider.of<Bluetooth>(context, listen: false).disconnectFromCurrentDevice();
+    Provider.of<Bluetooth>(context, listen: false).setCurrentDevice(null);
     super.deactivate();
   }
 

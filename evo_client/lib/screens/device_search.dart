@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 class DeviceSearchPage extends StatefulWidget {
   DeviceSearchPage({Key? key, required this.title, required this.selectDevice}) : super(key: key);
 
-  Function selectDevice;
+  final Function selectDevice;
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -31,12 +31,37 @@ class _DeviceSearchPageState extends State<DeviceSearchPage> {
     Navigator.pushNamed(context, '/deviceMain');
   }
 
-  void _toggleScan() async {
+  Future<void> showNoPermissionDialog(BuildContext context) async => showDialog<void>(
+    context: context,
+    barrierDismissible: false, // user must tap button!
+    builder: (BuildContext context) => AlertDialog(
+      title: const Text('No location permission '),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            const Text('No location permission granted.'),
+            const Text('Location permission is required for BLE to function.'),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          child: const Text('Acknowledge'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    ),
+  );
+
+  void _toggleScan(BuildContext context) async {
     var provider = Provider.of<Bluetooth>(context, listen: false);
     if(provider.isScanning) {
       await provider.stopScan();
     } else {
-      await provider.startScan(context);
+      var permissionGranted = await provider.startScan();
+      if(!permissionGranted) showNoPermissionDialog(context);
     }
 
   }
@@ -74,8 +99,8 @@ class _DeviceSearchPageState extends State<DeviceSearchPage> {
               rows: bluetooth.scanResults.where((e) => e.name.startsWith('AdAstra')).map((e) => DataRow(cells: <DataCell>[DataCell(Text(e.name), onTap: () => {_deviceTap(e) }), DataCell(Text(e.rssi.toString()), onTap: () => {_deviceTap(e) })])).toList()
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: _toggleScan,
-            tooltip: 'Increment',
+            onPressed: () => _toggleScan(context),
+            tooltip: 'Scan',
             backgroundColor: bluetooth.isScanning ? Colors.redAccent : Colors.blueAccent,
             child: Icon(bluetooth.isScanning ? Icons.cancel : Icons.search),
           ), // This trailing comma makes auto-formatting nicer for build methods.

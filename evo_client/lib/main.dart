@@ -20,12 +20,43 @@ class MyApp extends StatefulWidget  {
   _MyAppState createState() => new _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   DiscoveredDevice? device;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance?.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    var ble = Provider.of<Bluetooth>(context, listen: false);
+    switch(state) {
+      case AppLifecycleState.paused:
+        await ble.stopScan();
+        await ble.disconnectFromCurrentDevice();
+        break;
+      case AppLifecycleState.resumed:
+        if(device != null) {
+          await ble.connectToSelectedDevice();
+        }
+        break;
+
+    }
+    print('state = $state');
+  }
 
   void selectDevice(DiscoveredDevice newDevice) async {
     await Provider.of<Bluetooth>(context, listen: false).stopScan();
-    await Provider.of<Bluetooth>(context, listen: false).connectToSelectedDevice(newDevice);
+    Provider.of<Bluetooth>(context, listen: false).setCurrentDevice(newDevice);
+    await Provider.of<Bluetooth>(context, listen: false).connectToSelectedDevice();
     setState(() {
       device = newDevice;
     });
@@ -35,6 +66,7 @@ class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
       title: 'AdAstra Evo',
       initialRoute: device == null ? "/deviceSelector" : "/deviceMain",

@@ -25,13 +25,14 @@ class Bluetooth extends ChangeNotifier {
   List<DiscoveredDevice> get scanResults => _scanResults;
   bool get isScanning => _isScanning;
 
-  Future<void> startScan(BuildContext context) async {
+  Future<bool> startScan() async {
     bool goForIt=false;
     PermissionStatus permission;
     if (Platform.isAndroid) {
       permission = await LocationPermissions().requestPermissions();
-      if (permission == PermissionStatus.granted)
-        goForIt=true;
+      if (permission == PermissionStatus.granted) {
+        goForIt = true;
+      }
     } else if (Platform.isIOS) {
       goForIt=true;
     }
@@ -50,31 +51,8 @@ class Bluetooth extends ChangeNotifier {
         print(err);
       });
     }
+    return goForIt;
   }
-
-  Future<void> showNoPermissionDialog(BuildContext context) async => showDialog<void>(
-    context: context,
-    barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) => AlertDialog(
-      title: const Text('No location permission '),
-      content: SingleChildScrollView(
-        child: ListBody(
-          children: <Widget>[
-            const Text('No location permission granted.'),
-            const Text('Location permission is required for BLE to function.'),
-          ],
-        ),
-      ),
-      actions: <Widget>[
-        TextButton(
-          child: const Text('Acknowledge'),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
-    ),
-  );
 
   Future<void> stopScan() async {
     if(_scanStream != null) _scanStream?.cancel();
@@ -92,31 +70,55 @@ class Bluetooth extends ChangeNotifier {
     }
   }
 
-  Future<void> connectToSelectedDevice(DiscoveredDevice device) async {
+  void setCurrentDevice(DiscoveredDevice? device) {
     _currentBluetoothDevice = device;
-    _connectionStream = flutterReactiveBle.connectToAdvertisingDevice(
-      id: device.id,
-      withServices: [Uuid.parse('92aab162-79af-422f-a53b-fca7b98e2327')],
-      prescanDuration: const Duration(seconds: 5),
-      servicesWithCharacteristicsToDiscover: { Uuid.parse('92aab162-79af-422f-a53b-fca7b98e2327'): [Uuid.parse('61e8de2f-935b-42b2-ae5b-50d444b540eb')]},
-      connectionTimeout: const Duration(seconds:  2),
-    ).listen((connectionState) {
-      // Handle connection state updates
-    }, onError: (Object error) {
-      // Handle a possible error
-    });
+  }
 
-    final mtu = await flutterReactiveBle.requestMtu(deviceId: device.id, mtu: 250);
-    print('set MTU to $mtu');
+  Future<void> connectToSelectedDevice() async {
+    if(_currentBluetoothDevice != null) {
+      var device = _currentBluetoothDevice as DiscoveredDevice;
+      _connectionStream = flutterReactiveBle.connectToAdvertisingDevice(
+        id: device.id,
+        withServices: [Uuid.parse('92aab162-79af-422f-a53b-fca7b98e2327')],
+        prescanDuration: const Duration(seconds: 5),
+        servicesWithCharacteristicsToDiscover: {
+          Uuid.parse('92aab162-79af-422f-a53b-fca7b98e2327'): [
+            Uuid.parse('61e8de2f-935b-42b2-ae5b-50d444b540eb')
+          ]
+        },
+        connectionTimeout: const Duration(seconds: 2),
+      ).listen((connectionState) {
+        switch(connectionState.connectionState) {
+          case DeviceConnectionState.disconnected:
+            disconnectFromCurrentDevice();
+            setCurrentDevice(null);
+            notifyListeners();
+            break;
+          default:
+            break;
+        }
+      }, onError: (Object error) {
+        disconnectFromCurrentDevice();
+        setCurrentDevice(null);
+        notifyListeners();
+      });
 
-    final characteristic = getCharacteristic('61e8de2f-935b-42b2-ae5b-50d444b540eb') as QualifiedCharacteristic;
-    _characteristicSubscription = flutterReactiveBle.subscribeToCharacteristic(characteristic).listen((data) {
-      _parseNewDataPoint(data);
-    }, onError: (dynamic error) {
-      // code to handle errors
-    });
+      final mtu = await flutterReactiveBle.requestMtu(
+          deviceId: device.id, mtu: 250);
+      print('set MTU to $mtu');
 
-    notifyListeners();
+      final characteristic = getCharacteristic(
+          '61e8de2f-935b-42b2-ae5b-50d444b540eb') as QualifiedCharacteristic;
+      _characteristicSubscription =
+          flutterReactiveBle.subscribeToCharacteristic(characteristic).listen((
+              data) {
+            _parseNewDataPoint(data);
+          }, onError: (dynamic error) {
+            // code to handle errors
+          });
+
+      notifyListeners();
+    }
   }
 
   QualifiedCharacteristic? getCharacteristic(charGuid) {
@@ -128,13 +130,14 @@ class Bluetooth extends ChangeNotifier {
   }
 
   Future<void> disconnectFromCurrentDevice() async {
-    _characteristicSubscription?.cancel();
-    _characteristicSubscription = null;
-    _connectionStream?.cancel();
-    _connectionStream = null;
-    _currentDataPoint = null;
-    _currentBluetoothDevice = null;
-    notifyListeners();
+    if(_currentBluetoothDevice != null) {
+      _characteristicSubscription?.cancel();
+      _characteristicSubscription = null;
+      _connectionStream?.cancel();
+      _connectionStream = null;
+      _currentDataPoint = null;
+      notifyListeners();
+    }
   }
 
   Future<Settings> readSettings() async {
