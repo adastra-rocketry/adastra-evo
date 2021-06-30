@@ -24,4 +24,8 @@ class Calculation
     SF fusion;
     void CalcPitchRollYaw();
     void UpdateKalmanFilters();
+    void UpdateHighestAltitude();
+    float CalculateAltitude(float launchAltitude, float launchPressure, float P, float T);
+    float ReadP0(float myAltitude, float abs_Pressure);
+    void CalcAltitude();
 };

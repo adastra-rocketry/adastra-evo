@@ -88,7 +88,7 @@ void Sensors::ReadMPU6050(float &acc_x, float &acc_y, float &acc_z, float &g_x, 
   g_x = g.gyro.x;
   g_y = g.gyro.y;
   g_z = g.gyro.z;
-  temperature = temp.temperature / 340.0 + 36.53;
+  temperature = temp.temperature;
   if(DEBUG) Serial.println("END Sensors::ReadMPU6050()");
 }
 

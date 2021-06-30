@@ -23,7 +23,7 @@
 struct SettingsDto
 {
     float LaunchAltitude = 145.0f;
-    float PressureNN = 1027.6f;
+    float PressureNN = 998.6f;
     char Name[16];
 
     VehicleStateType Pyro1ActionState;
