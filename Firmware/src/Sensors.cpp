@@ -5,21 +5,22 @@ Sensors::Sensors(SystemState &state) : State{ state } {
 
 void Sensors::Init() {
   if(DEBUG) Serial.println("BEGIN Sensors::Init()");
-  //Wire1.setClock(10000);
+  Wire.setClock(400000);
   Wire.begin();
-  InitMPU6050(); // not affected by I2C bug
+  InitMPU6050();
   InitIMU();
+  InitBarometer();
 
   if(DEBUG) Serial.println("END Sensors::Init()");
 }
 
-// void Sensors::InitBarometer() {
-//   if (!lps35hw.begin_I2C(0x5C, &Wire1)) {
-//     if(DEBUG) Serial.println("Failed to initialize pressure sensor!");
-//     while (1) {}
-//   }
-//   lps35hw.setDataRate(LPS35HW_RATE_25_HZ);
-// }
+void Sensors::InitBarometer() {
+  if (!lps35hw.begin_I2C(0x5D, &Wire)) {
+    if(DEBUG) Serial.println("Failed to initialize pressure sensor!");
+    while (1) {}
+  }
+  lps35hw.setDataRate(LPS35HW_RATE_25_HZ);
+}
 
 void Sensors::InitIMU() {
   if (!lsm6ds.begin_I2C()) {
@@ -54,7 +55,7 @@ void Sensors::Loop() {
   State.CurrentDataPoint.Timestamp = millis();  
 
   //read pressure
-  // State.CurrentDataPoint.Pressure = ReadPressure();
+  State.CurrentDataPoint.Pressure = ReadPressure();
 
   // read IMU
   ReadAcceleration(State.CurrentDataPoint.Acc_X, State.CurrentDataPoint.Acc_Y, State.CurrentDataPoint.Acc_Z);
@@ -116,7 +117,7 @@ void Sensors::ReadTemperature(float &t) {
   if(DEBUG) Serial.println("END Sensors::ReadTemperature()");
 }
 
-// float Sensors::ReadPressure() {
-//   if(DEBUG) Serial.println("BEGIN Sensors::ReadPressure()");
-//   return lps35hw.readPressure();
-// }
+float Sensors::ReadPressure() {
+  if(DEBUG) Serial.println("BEGIN Sensors::ReadPressure()");
+  return lps35hw.readPressure();
+}
