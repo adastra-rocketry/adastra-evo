@@ -1,6 +1,6 @@
 #include "SDWriter.h"
 
-#define SPI_SPEED SD_SCK_MHZ(4)
+#define SPI_SPEED SD_SCK_MHZ(50)
 
 SDWriter::SDWriter(SystemState &state) : State{state}
 {
@@ -17,6 +17,7 @@ void SDWriter::Init()
 
 void SDWriter::StartNewFile()
 {
+  if(DEBUG) Serial.println("BEGIN SDWriter::StartNewFile()");
   if (DataFile)
   {
     DataFile.close();
@@ -28,15 +29,25 @@ void SDWriter::StartNewFile()
     n++;
     snprintf(Filename, sizeof(Filename), "data%03d.csv", n);
   }
-  DataFile = SD.open(Filename, FILE_WRITE);
+  DataFile = SD.open(Filename, O_WRITE | O_CREAT);
   CreateCsvHeadings();
+  if(DEBUG) Serial.println("END SDWriter::StartNewFile()");
 }
 
 void SDWriter::Loop()
 {
+  if(DEBUG) Serial.println("BEGIN SDWriter::Loop()");
   if(SDavailable) {
     CreateCsvLine();
   }
+  if(Counter % 20 == 0) {
+    if(DEBUG) Serial.println("BEGIN SDWriter::Loop() Before Flush");
+    DataFile.flush();
+    if(DEBUG) Serial.println("BEGIN SDWriter::Loop() Flush");
+  }
+
+  Counter++;
+  if(DEBUG) Serial.println("ENd SDWriter::Loop()");
 }
 
 void SDWriter::CreateCsvHeadings()
@@ -77,6 +88,5 @@ void SDWriter::CreateCsvLine()
              State.CurrentDataPoint.Altitude,
              State.CurrentDataPoint.KalmanPressure);
     DataFile.println(dataString);
-    DataFile.flush();
   }
 }
