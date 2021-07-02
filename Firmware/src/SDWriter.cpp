@@ -1,14 +1,15 @@
 #include "SDWriter.h"
 
-#define SPI_SPEED SD_SCK_MHZ(50)
-
 SDWriter::SDWriter(SystemState &state) : State{state}
 {
 }
 
 void SDWriter::Init()
 {
-  if(!SD.begin(SD_CARD_PIN)) {
+  
+  pinMode(SD_CS_PIN, OUTPUT);
+  if (!sd.begin(SD_CONFIG)) {
+    sd.initErrorHalt(&Serial);
     SDavailable = false;
   } else {
     StartNewFile();
@@ -18,18 +19,29 @@ void SDWriter::Init()
 void SDWriter::StartNewFile()
 {
   if(DEBUG) Serial.println("BEGIN SDWriter::StartNewFile()");
-  if (DataFile)
+  if (CsvFile.isOpen())
   {
-    DataFile.close();
+    CsvFile.close();
   }
+
   int n = 0;
-  snprintf(Filename, sizeof(Filename), "data%03d.csv", n);
-  while (SD.exists(Filename))
+  do 
   {
-    n++;
     snprintf(Filename, sizeof(Filename), "data%03d.csv", n);
+    n++;
+  } while (sd.exists(Filename));
+
+  Serial.print("Using filename: ");
+  Serial.println(Filename);
+
+
+  if(!CsvFile.open(Filename, O_WRONLY | O_CREAT | O_TRUNC)) {
+    Serial.println("open CSV File failed");
   }
-  DataFile = SD.open(Filename, O_WRITE | O_CREAT);
+
+  // if (!CsvFile.preAllocate(PREALLOCATE_SIZE)) {
+  //   Serial.println("preAllocate failed");
+  // }
   CreateCsvHeadings();
   if(DEBUG) Serial.println("END SDWriter::StartNewFile()");
 }
@@ -40,9 +52,10 @@ void SDWriter::Loop()
   if(SDavailable) {
     CreateCsvLine();
   }
-  if(Counter % 20 == 0) {
+
+  if(Counter % 50 == 0) {
     if(DEBUG) Serial.println("BEGIN SDWriter::Loop() Before Flush");
-    DataFile.flush();
+    CsvFile.flush();
     if(DEBUG) Serial.println("BEGIN SDWriter::Loop() Flush");
   }
 
@@ -53,10 +66,10 @@ void SDWriter::Loop()
 void SDWriter::CreateCsvHeadings()
 {
   String headings = "state;timestamp;pressure;temperature;accX;accY;accZ;gX;gY;gZ;accX;accY;accZ;gX;gY;gZ;backTemp;altitude;KalmanPressure";
-  if (DataFile)
+  if (CsvFile.isOpen())
   {
-    DataFile.println(headings);
-    DataFile.flush();
+    CsvFile.println(headings);
+    CsvFile.flush();
   }
 }
 
@@ -64,7 +77,7 @@ void SDWriter::CreateCsvLine()
 {
   
 
-  if (DataFile)
+  if (CsvFile.isOpen())
   {
     char dataString[500];
     snprintf(dataString, 400, "%u;%lu;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f;%f",
@@ -87,6 +100,6 @@ void SDWriter::CreateCsvLine()
              State.CurrentDataPoint.Back_Temperature,
              State.CurrentDataPoint.Altitude,
              State.CurrentDataPoint.KalmanPressure);
-    DataFile.println(dataString);
+    CsvFile.println(dataString);
   }
 }

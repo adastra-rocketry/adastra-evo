@@ -18,7 +18,7 @@
 
 #define BUTTON_PIN 5
 
-#define SD_CARD_PIN 8
+#define SD_CS_PIN 8
 
 struct SettingsDto
 {
